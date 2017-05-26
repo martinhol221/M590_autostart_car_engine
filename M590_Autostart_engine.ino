@@ -1,3 +1,4 @@
+//https://www.drive2.ru/l/474186105906790427/
 #include <SoftwareSerial.h>
 SoftwareSerial m590(7, 8); // RX, TX
 #include <DallasTemperature.h> // подключаем библиотеку чтения датчиков температуры
