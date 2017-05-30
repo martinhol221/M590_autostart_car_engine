@@ -34,8 +34,8 @@ float Vstart = 13.2;     // поорог распознавания момент
 float m = 66.91;         // делитель для перевода АЦП в вольты для резистров 39/11kOm
 
 void setup() {
-  pinMode(led, OUTPUT);
-  digitalWrite(led, LOW);
+  pinMode(12, OUTPUT);
+  digitalWrite(12, LOW);
   Serial.begin(9600);  //скорость порта
   Serial.println("Starting M590....");
   m590.begin(9600);
