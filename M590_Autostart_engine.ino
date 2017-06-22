@@ -164,7 +164,7 @@ int StarterTime = 1000;  // переменная хранения времени
     digitalWrite(ON_Pin, LOW),    delay (3000);  // выключаем зажигание на 3 сек. на всякий случай  
     digitalWrite(ON_Pin, HIGH),   delay (5000);  // включаем зажигание  и ждем 5 сек.
     digitalWrite(STARTER_Pin, HIGH), delay (StarterTime); // включаем реле стартера на 1.0 сек. 
-    digitalWrite(STARTER_Pin, LOW),  delay (6000); // отключаем реле, выжидаем 4 сек.
+    digitalWrite(STARTER_Pin, LOW),  delay (6000); // отключаем реле, выжидаем 6 сек.
     Vbat =        analogRead(BAT_Pin), delay (300); // замеряем напряжение АКБ 3 раза
     Vbat = Vbat + analogRead(BAT_Pin), delay (300); // с интервалом в 0.3 сек. 
     Vbat = Vbat + analogRead(BAT_Pin), delay (300);
