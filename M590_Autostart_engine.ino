@@ -101,9 +101,10 @@ void loop() {
 }
 
 if (millis()> Time1 + 10000) detection(), Time1 = millis(); // выполняем функцию detection () каждые 10 сек 
-  
-}
-
+if (heating == true) {
+                     if (digitalRead(STOP_Pin) == HIGH) heatingstop();
+                     }
+    
 void detection(){ // условия проверяемые каждые 10 сек  
     sensors.requestTemperatures();   // читаем температуру с трех датчиков
     tempds0 = sensors.getTempCByIndex(0);
