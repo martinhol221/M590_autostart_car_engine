@@ -174,8 +174,8 @@ int StarterTime = 1000;  // переменная хранения времени
   //Serial.print("Vbat^ = "), Serial.print(Vbat), Serial.print (" V. | count = "), Serial.println(count); 
     StarterTime = StarterTime + 200; // увеличиваем время следующего старта на 0.2 сек.
     count--; // уменьшаем на еденицу число оставшихся потыток запуска
-    //  if (digitalRead(DDM_Pin) == LOW) // если детектировать по датчику давления масла 
-        if (Vbat > Vstart) // // если детектировать по напряжению зарядки
+     // if (digitalRead(DDM_Pin) != LOW) // если детектировать по датчику давления масла 
+     if (Vbat > Vstart) // // если детектировать по напряжению зарядки
         { 
         heating = true, Serial.println (" Vbat > Vstart,  heating = true");
         digitalWrite(ACTIV_Pin, HIGH), Serial.println ("Engine started, break ");
