@@ -52,12 +52,9 @@ void loop() {
     while (m590.available()) k = m590.read(), at += char(k),delay(1);
     
     if (at.indexOf("RING") > -1) {
-      m590.println("AT+CLIP=1"), Serial.print(" R I N G > ");  //включаем АОН
-      if (at.indexOf(call_phone) > -1) {
-                        delay(50), m590.println("ATH0");
-                        Serial.println("Incoming call is cleared"), WarmUpTimer = 60, start = true;
-                                  }
-                          
+        m590.println("AT+CLIP=1"), Serial.print(" R I N G > ");  //включаем АОН
+        if (at.indexOf(call_phone) > -1) delay(50), m590.println("ATH0"), WarmUpTimer = 60, start = true;
+                                                           
     } else if (at.indexOf("\"SM\",") > -1) {Serial.println("in SMS"); // если пришло SMS
            m590.println("AT+CMGF=1"), delay(50); // устанавливаем режим кодировки СМС
            m590.println("AT+CSCS=\"gsm\""), delay(50);  // кодировки GSM
@@ -70,7 +67,6 @@ void loop() {
            m590.println("AT+CNMI=2,1,0,0,0"), delay(100); // включем оповещения при поступлении СМС
            m590.println("AT+CMGF=1"),         delay(100); // 
            m590.println("AT+CSCS=\"gsm\""),   delay(100); // кодировка смс
-
 
     } else if (at.indexOf("123starting10") > -1 ) {  // команда запуска на 10 мин.
            Serial.println("123 s t a r t i n g 10"), WarmUpTimer = 60, start = true;
