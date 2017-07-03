@@ -53,8 +53,10 @@ void loop() {
     
     if (at.indexOf("RING") > -1) {
       m590.println("AT+CLIP=1"), Serial.print(" R I N G > ");  //включаем АОН
-      if (at.indexOf(call_phone) > -1) delay(50), m590.println("ATH0");
-      Serial.println("Incoming call is cleared"),WarmUpTimer = 60, start = true;
+      if (at.indexOf(call_phone) > -1) {
+                        delay(50), m590.println("ATH0");
+                        Serial.println("Incoming call is cleared"), WarmUpTimer = 60, start = true;
+                                  }
                           
     } else if (at.indexOf("\"SM\",") > -1) {Serial.println("in SMS"); // если пришло SMS
            m590.println("AT+CMGF=1"), delay(50); // устанавливаем режим кодировки СМС
