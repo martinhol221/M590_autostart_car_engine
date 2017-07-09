@@ -78,7 +78,8 @@ void loop() {
     } else if (at.indexOf("+TCPCLOSE:0,OK") > -1 ) {  // если соеденение закрылось меняем статус модема
            Serial.println("T C P C L O S E  OK  --> Modem =0 "), modem = 0; 
            
-    } else if (at.indexOf("+TCPSETUP:0,OK") > -1 && modem == 2 ) { // если конект к народмону  успешен 
+    } else if (at.indexOf("+TCPSETUP:0") > -1 && modem == 2 ) { // если конект к народмону  успешен 
+      Serial.print(at), Serial.println("  --> T C P S E N D = 0,75 , modem = 3" );
                 Serial.println(" T C P S E T U P : 0,OK --> T C P S E N D = 0,75 , modem = 3" );
                 m590.println("AT+TCPSEND=0,75"), delay(200), modem = 3; // меняем статус модема
 
