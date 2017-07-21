@@ -2,8 +2,8 @@
 //https://www.drive2.ru/c/476276827267007358/
 #include <SoftwareSerial.h>
 SoftwareSerial m590(7, 8); // RX, TX
-#include <DallasTemperature.h> // подключаем библиотеку чтения датчиков температуры
-#define ONE_WIRE_BUS 11 // и настраиваем  пин 11 как шину подключения датчиков DS18B20
+#include <DallasTemperature.h> // https://github.com/milesburton/Arduino-Temperature-Control-Library
+#define ONE_WIRE_BUS 11 // https://github.com/PaulStoffregen/OneWire
 OneWire oneWire(ONE_WIRE_BUS); 
 DallasTemperature sensors(&oneWire);
 
