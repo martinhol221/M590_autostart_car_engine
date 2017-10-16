@@ -21,21 +21,15 @@ DallasTemperature sensors(&oneWire);
 
 float tempds0;             // переменная хранения температуры с датчика двигателя
 float tempds1;             // переменная хранения температуры с датчика на улице
-
+int Timer2 = 1080;       // интервал опроса датчиков на низкую температуру (3 часа)
 int k = 0;
-int led = 13;
-//int count = 0 ;         // счетчик неудачных попыток запуска  
-int interval = 30;      // интервал отправки данных на народмон 
 String at = "";
 String SMS_phone = "+375000000000"; // куда шлем СМС
 String call_phone = "375000000000"; // телефон хозяина без плюса
 unsigned long Time1 = 0;
-int WarmUpTimer = 0;     // переменная времени прогрева двигателя по умолчанию
-int modem =0;            // переменная состояние модема
-bool start = false;      // переменная разовой команды запуска
+int Timer = 0;     // переменная времени прогрева двигателя по умолчанию
 bool heating = false;    // переменная состояния режим прогрева двигателя
-bool SMS_send = false;   // флаг разовой отправки СМС
-bool n_send = false;     // флаг отправки данных на народмон 
+bool SMS_send = true;   // флаг разрешений отправки СМС
 float Vbat;              // переменная хранящая напряжение бортовой сети
 float Vstart = 12.50;    // поорог распознавания момента запуска по напряжению
 float m = 66.80;         // делитель для перевода АЦП в вольты для резистров 39/11kOm
@@ -49,10 +43,10 @@ void setup() {
   digitalWrite(boot_Pin, LOW);
 
   Serial.begin(9600);     // скорость порта для отладки
-  m590.begin(9600);     // скорость порта модема, может быть 38400
+  m590.begin(9600);       // скорость порта модема, может быть 38400
   delay(1000);
-  if (digitalRead(STOP_Pin) == HIGH) n_send = true;  // включаем народмон при нажатой педали тормоза при подаче питания 
-  Serial.print("Starting M590 12.10.2017, n_send =  "), Serial.println(n_send);
+  if (digitalRead(STOP_Pin) == HIGH) SMS_send = false;  // выключаем СМС оповещения
+  Serial.print("Starting M590 LITE 16.10.2017, n_send =  "), Serial.println(SMS_send);
 //m590.println("AT+IPR=9600");  // настройка скорости M590 если не завелся на 9600 но завелся на 38400
               }
 
@@ -62,119 +56,119 @@ void loop() {
     
     if (at.indexOf("RING") > -1) {
         m590.println("AT+CLIP=1"), Serial.print(" R I N G > ");  //включаем АОН
-        if (at.indexOf(call_phone) > -1) delay(50), m590.println("ATH0"), WarmUpTimer = 60, start = true;
-    /*                                                       
+        if (at.indexOf(call_phone) > -1) delay(50), m590.println("ATH0"), Timer = 60, enginestart();
+    
+    } else if (at.indexOf("123starting10") > -1 ) {                     // команда запуска на 10 мин.
+           Serial.println(at);
+           Serial.println("123 s t a r t i n g 10");
+           Timer = 60;
+           enginestart();
+           
+    } else if (at.indexOf("123starting20") > -1 ) {                   // команда запуска на 20 мин.
+           Serial.println(at);
+           Serial.println("123 s t a r t i n g 20");
+           Timer = 120;
+           enginestart();
+
+    } else if (at.indexOf("123stop") > -1 ) {                         // команда остановки остановки
+           Serial.println("123 s t o p");
+           Timer = 0;      
+     /*                                                       
     } else if (at.indexOf("\"SM\",") > -1) {Serial.println("in SMS"); // если пришло SMS
            m590.println("AT+CMGF=1"), delay(50); // устанавливаем режим кодировки СМС
            m590.println("AT+CSCS=\"gsm\""), delay(50);  // кодировки GSM
            m590.println("AT+CMGR=1"), delay(20), m590.println("AT+CMGD=1,4"), delay(20);  
     */
+    
     } else if (at.indexOf("+PBREADY") > -1) {             // если модем стартанул  
            Serial.println(" P B R E A D Y > ATE0 / AT+CMGD=1,4 / AT+CNMI / AT+CMGF/ AT+CSCS");
-           m590.println("ATE0"),              delay(100); // отключаем режим ЭХА 
-           m590.println("AT+CMGD=1,4"),       delay(100); // стираем все СМС
-        // m590.println("AT+CNMI=2,1,0,0,0"), delay(100); // включем оповещения при поступлении СМС
-           m590.println("AT+CMGF=1"),         delay(100); // 
-           m590.println("AT+CSCS=\"gsm\""),   delay(100); // кодировка смс
+           m590.println("ATE0"),              delay(100);        // отключаем режим ЭХА модема
+           m590.println("AT+CMGD=1,4"),       delay(100);        // стираем все СМС
+        // m590.println("AT+CNMI=2,1,0,0,0"), delay(100);        // включем оповещения при поступлении СМС
+           m590.println("AT+CMGF=1"),         delay(100);        // 
+           m590.println("AT+CSCS=\"gsm\""),   delay(100);        // кодировка смс           
 
-    } else if (at.indexOf("123starting10") > -1 ) {  // команда запуска на 10 мин.
-           Serial.println("123 s t a r t i n g 10"), WarmUpTimer = 60, start = true;
-           
-    } else if (at.indexOf("123starting20") > -1 ) {  // команда запуска на 20 мин.
-           Serial.println("123 s t a r t i n g 20"), WarmUpTimer = 120, start = true;
-
-    } else if (at.indexOf("123stop") > -1 ) {  // команда остановки остановки
-           Serial.println("123 s t o p"), WarmUpTimer = 0;           
-
-    } else if (at.indexOf("+TCPRECV:0,") > -1 ) {  // если сервер что-то ответил - закрываем соединение
-           Serial.println("T C P R E C V --> T C P C L O S E "), m590.println("AT+TCPCLOSE=0");      
-
-    } else if (at.indexOf("+TCPCLOSE:0,OK") > -1 ) {  // если соеденение закрылось меняем статус модема
-           Serial.println("T C P C L O S E  OK  --> Modem =0 "), modem = 0; 
-           
-    } else if (at.indexOf("+TCPSETUP:0,OK") > -1 && modem == 2 ) { // если конект к народмону  успешен 
-                Serial.println(" T C P S E T U P : 0,OK --> T C P S E N D = 0,75 , modem = 3" );
-                m590.println("AT+TCPSEND=0,75"), delay(200), modem = 3; // меняем статус модема
-
-    } else if (at.indexOf(">") > -1 && modem == 3 ) {  // "набиваем" пакет данными и шлем на сервер 
-         m590.print("#M5-12-56-XX-XX-XX#M590+Sensor"); // индивидуальный номер для народмона XX-XX-XX заменяем на свое 
-         if (tempds0 > -40 && tempds0 < 54) m590.print("\n#Temp1#"), m590.print(tempds0);  // значение первого датчиака для народмона
-         if (tempds1 > -40 && tempds1 < 54) m590.print("\n#Temp2#"), m590.print(tempds1);  // значение второго датчиака для народмона
-         m590.print("\n#Vbat#"), m590.print(Vbat);  // напряжение АКБ для отображения на народмоне
-         m590.println("\n##");      // обязательный параметр окончания пакета данных
-         delay (50), m590.println("AT+TCPCLOSE=0"), modem = 4; // закрываем пакет
-
-     } else  Serial.println(at);    // если пришло что-то другое выводим в серийный порт
-     at = "";  // очищаем переменную
+     } else  Serial.println(at);                                 // если пришло что-то другое выводим в серийный порт
+     at = "";                                                    // очищаем переменную
 }
 
-if (millis()> Time1 + 10000) detection(), Time1 = millis(); // выполняем функцию detection () каждые 10 сек 
-if (heating == true) {
+if (millis()> Time1 + 10000) detection(), Time1 = millis();      // выполняем функцию detection () каждые 10 сек 
+if (heating == true) {                                           // если нажали на педаль СТОП в прогреве
                      if (digitalRead(STOP_Pin) == HIGH) heatingstop();
                      }
 }   
-void detection(){                           // условия проверяемые каждые 10 сек  
-    sensors.requestTemperatures();          // читаем температуру с трех датчиков
+void detection(){                                                // условия проверяемые каждые 10 сек  
+    sensors.requestTemperatures();                               // читаем температуру с трех датчиков
     tempds0 = sensors.getTempCByIndex(0);
     tempds1 = sensors.getTempCByIndex(1);
     
-  Vbat = analogRead(BAT_Pin);  // замеряем напряжение на батарее
-  Vbat = Vbat / m ; // переводим попугаи в вольты
-  Serial.print("Vbat= "),Serial.print(Vbat), Serial.print (" V.");  
-  Serial.print(" || Temp : "), Serial.print(tempds0);  
-  Serial.print(" || Interval : "), Serial.print(interval);  
-  Serial.print(" || WarmUpTimer ="), Serial.println (WarmUpTimer);
-
-
-    if (modem == 1) {                        // отправляем данные на сервер
-      m590.println("AT+XISP=0"), delay (50);
-      m590.println("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\""), delay (50);
-      m590.println("AT+XGAUTH=1,1,\"life\",\"life\""), delay (50);
-      m590.println("AT+XIIC=1"), delay (200);
-      m590.println("AT+TCPSETUP=0,94.142.140.101,8283"), modem = 2;
-                    }
-
-        
-    if (modem == 0 && SMS_send == true) {  // если фаг SMS_send равен 1 высылаем отчет по СМС
-        delay(3000); 
-        m590.println("AT+CMGF=1"),delay(100); // устанавливаем режим кодировки СМС
-        m590.println("AT+CSCS=\"gsm\""),delay(100);  // кодировки GSM
-        Serial.print("SMS send start...");
-        m590.println("AT+CMGS=\"" + SMS_phone + "\""),delay(100);
-        m590.print("Status m590 v 12.10.2017 ");
-        m590.print("\n Temp.Dvig: "), m590.print(tempds0);
-        m590.print("\n Temp.Salon: "), m590.print(tempds1);
-        m590.print("\n Vbat: "), m590.print(Vbat);
-        m590.print((char)26),delay(100);     
-        Serial.println(".... SMS send stop"), delay(1000);
-        SMS_send = false;
-              }
-             
-    
-    if (WarmUpTimer > 0 && start == true) Serial.println("Starting engine..."), start = false, enginestart(); 
-    if (WarmUpTimer > 0 ) WarmUpTimer--;  
-    if (heating == true && WarmUpTimer <1) Serial.println("End timer"), heatingstop(); 
+    Vbat = analogRead(BAT_Pin);                                    // замеряем напряжение на батарее
+    Vbat = Vbat / m ;                                              // переводим попугаи в вольты
+    Serial.print("Vbat= "),Serial.print(Vbat), Serial.print (" V.");  
+    Serial.print(" || Temp0 : "), Serial.print(tempds0);           // дополнительный датчик на двигателе
+    Serial.print(" || Temp1 : "), Serial.print(tempds1);           // дополнительный датчик в салоне
+    Serial.print(" || Timer2 : "), Serial.print(Timer2);       // таймер 3-х часового отсчета
+    Serial.print(" || Timer ="), Serial.println (Timer); // таймер прогрева
+   
+    if (Timer > 0 ) Timer--;  
+    if (heating == true && Timer <1) Serial.println("End timer"), heatingstop(); 
     if (heating == true && Vbat < 11.3) Serial.println("Low voltage"), heatingstop(); 
     if (heating == false) digitalWrite(ACTIV_Pin, HIGH), delay (50), digitalWrite(ACTIV_Pin, LOW);  // моргнем светодиодом
-    
-    if (n_send == true) interval--;
-    if (interval <1 ) interval = 30, modem = 1;
-    if (modem != 0 && interval == 28) Serial.println(" modem != 0 && interval == 28 > T C P C L O S E "), m590.println("AT+TCPCLOSE=0"), modem = 0;  
+
+    // if (Timer2 == 2 && tempds0 < -18 && tempds0 != -127) Timer2 = 1080, Timer = 120, enginestart();  
+    // if (Timer2 == 1 && tempds0 < -25 && tempds0 != -127) Timer2 = 360, SMS_Send();    
+    Timer2--;
+    if (Timer2 <1 ) Timer2 = 1080;
+   
    
 }             
+
+void SMS_Send() {                                                // функция отправки СМС отчета
+        Serial.print("SMS send start...");
+        m590.println("AT+CMGF=1"), delay(100);                   // устанавливаем режим кодировки СМС
+        m590.println("AT+CSCS=\"gsm\""),delay(100);              // кодировки GSM
+        Serial.print("SMS send start...");
+        m590.println("AT+CMGS=\"" + SMS_phone + "\""),delay(100);
+        m590.print("Status m590 v 16.10.2017 ");
+        m590.print("\n Temperatura dvigatelja: "), m590.print(tempds0),  m590.print("grad.");
+        m590.print("\n Temperatura salona: "),     m590.print(tempds1), m590.print("grad.");
+        m590.print("\n Vbat: "), m590.print(Vbat), m590.print(" Volt");
+        m590.print("\n Uptime: "), m590.print(millis()/3600000), m590.print(" H.");
+        m590.print((char)26),delay(500);
+        Serial.print("Temperatura dvigatelja: "), Serial.print(tempds0),  Serial.println("grad.");     
+        Serial.print("Temperatura salona: "),     Serial.print(tempds1),  Serial.println("grad.");
+        Serial.print("Vbat: "), Serial.print(Vbat), Serial.println(" Volt");
+        Serial.print("Uptime: "), Serial.print(millis()/60000), Serial.println(" Min.");
+                   }
+             
+
  
-void enginestart() {  // программа запуска двигателя
-Serial.println ("enginestart() > , count = 3 || StarterTime = 1000");
-int count = 3;   // переменная хранящая число оставшихся потыток зауска
-int StarterTime = 1000;  // переменная хранения времени работы стартера (1 сек. для первой попытки)  
- while (Vbat > 10.00 && digitalRead(Feedback_Pin) == LOW && digitalRead(STOP_Pin) == LOW && count > 0) 
+void enginestart() {                                            // вызов цикла запуска
+    Serial.println ("enginestart() > , count = 3 || StarterTime = 1000");
+    int count = 3;                                                  // переменная хранящая число оставшихся потыток зауска
+    int StarterTime = 1000;                                        //  времени работы стартера (1 сек. для первой попытки)  
+    if (tempds0 < 15  && tempds0 != -127)  StarterTime = 1200, count = 2;   // при 15 - 2 папытки по 1.2 / 1.4 сек
+    if (tempds0 < 5   && tempds0 != -127)  StarterTime = 1500, count = 2;   // при  5 - 2 папытки по 1.5 / 1.7 сек
+    if (tempds0 < -5  && tempds0 != -127)  StarterTime = 2000, count = 3;   // при -5 - 3 папытки по 2.0 / 2.2 / 2.4 сек
+    if (tempds0 < -10 && tempds0 != -127)  StarterTime = 3000, count = 3;  // при -10 - 3 папытки по 3.0 / 3.2 / 3.4 сек
+    if (tempds0 < -15 && tempds0 != -127)  StarterTime = 5000, count = 4;  // при -15 - 4 папытки по 5.0 / 5.2 / 5.4 / 5.6 сек
+    if (tempds0 < -30 && tempds0 != -127)  StarterTime = 0,    count = 0;    // даже не пытаемся заводиться
+    
+ while (Vbat > 10.00 && digitalRead(Feedback_Pin) == LOW && digitalRead(STOP_Pin) == LOW && count > 0)  // цикл запуска
     { // если напряжение АКБ больше 10 вольт, зажигание выключено, КПП в нейтрали  и счетчик числа попыток не равен 0 то...
     Serial.print ("count = "), Serial.println (count), Serial.print (" ||  StarterTime = "), Serial.println (StarterTime);
      
     digitalWrite(ACTIV_Pin, HIGH);                        // зажжем светодиод для индикации процесса 
     digitalWrite(FIRST_P_Pin, HIGH);                      // включаем реле первого положения замка зажигания 
+
     digitalWrite(ON_Pin, LOW),    delay (3000);           // выключаем зажигание на 3 сек. на всякий случай  
     digitalWrite(ON_Pin, HIGH),   delay (5000);           // включаем зажигание  и ждем 5 сек.
+
+    // дополнительный прогрев свечей при температурах ниже  -5 и - 15 градусов
+    if (tempds0 < -5 && tempds0 != -127)  digitalWrite(ON_Pin, LOW), delay (2000), digitalWrite(ON_Pin, HIGH), delay (6000);
+    if (tempds0 < -15 && tempds0 != -127) digitalWrite(ON_Pin, LOW), delay (10000), digitalWrite(ON_Pin, HIGH), delay (8000);
+
+    
     digitalWrite(STARTER_Pin, HIGH), delay (StarterTime); // включаем реле стартера время StarterTime
     digitalWrite(STARTER_Pin, LOW),  delay (6000);        // отключаем реле, выжидаем 6 сек.
     
@@ -191,6 +185,7 @@ int StarterTime = 1000;  // переменная хранения времени
      if (Vbat > Vstart) {                                 // если детектировать по напряжению зарядки     /-С-/
         Serial.print ("heating = true, break,  Vbat > Vstart = "), Serial.println(Vbat); 
         heating = true, digitalWrite(ACTIV_Pin, HIGH);
+        SMS_Send();
         break; // считаем старт успешным, выхдим из цикла запуска двигателя
                         }
                         
@@ -202,8 +197,8 @@ int StarterTime = 1000;  // переменная хранения времени
         heating = false, delay(3000);
              }
       }
-  Serial.println (" out >>>>> enginestart()");
-  if (digitalRead(Feedback_Pin) == LOW) SMS_send = true;  // отправляем смс только в случае незапуска
+  Serial.println (" out >>>>> enginestart()");          // выходим из цикла вызова запуска
+ // if (digitalRead(Feedback_Pin) == LOW) SMS_Send();  // отправляем смс только в случае незапуска
   
  }
 
@@ -213,6 +208,6 @@ void heatingstop() {  // программа остановки прогрева 
     digitalWrite(ACTIV_Pin, LOW);
     digitalWrite(FIRST_P_Pin, LOW);
     Serial.println ("Warming stopped"),
-    heating= false, delay(1000); 
+    heating = false, delay(1000); 
                    }
 
