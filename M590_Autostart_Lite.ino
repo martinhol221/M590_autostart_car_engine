@@ -1,5 +1,3 @@
-//https://www.drive2.ru/l/474186105906790427/
-//https://www.drive2.ru/c/476276827267007358/
 #include <SoftwareSerial.h>
 SoftwareSerial m590(5, 4); // RX, TX  для новой платы
 #include <DallasTemperature.h> // https://github.com/milesburton/Arduino-Temperature-Control-Library
@@ -21,9 +19,14 @@ DallasTemperature sensors(&oneWire);
 
 float tempds0;             // переменная хранения температуры с датчика двигателя
 float tempds1;             // переменная хранения температуры с датчика на улице
-int Timer2 = 1080;       // интервал опроса датчиков на низкую температуру (3 часа)
+float TempStart= -45;      // температура до старта
+float VbatStart= -12;      // напряжение до старта
+int Timer2 = 1080;         // интервал опроса датчиков на низкую температуру (3 часа)
 int k = 0;
+int count = 0;            // переменная хранящая число оставшихся потыток зауска
+int StarterTime = 0;      // времени работы стартера (1 сек. для первой попытки)  
 String at = "";
+String stat = "Net deistviy";
 String SMS_phone = "+375000000000"; // куда шлем СМС
 String call_phone = "375000000000"; // телефон хозяина без плюса
 unsigned long Time1 = 0;
@@ -47,7 +50,7 @@ void setup() {
   m590.begin(9600);       // скорость порта модема, может быть 38400
   delay(1000);
   if (digitalRead(STOP_Pin) == LOW) SMS_send = false;  // выключаем СМС оповещения
-  Serial.print("Starting M590 LITE 16.10.2017, n_send =  "), Serial.println(SMS_send);
+  Serial.print("Starting M590 LITE 22.10.2017, n_send =  "),  Serial.println(SMS_send);
 //m590.println("AT+IPR=9600");  // настройка скорости M590 если не завелся на 9600 но завелся на 38400
               }
 
@@ -57,7 +60,7 @@ void loop() {
     
     if (at.indexOf("RING") > -1) {
         m590.println("AT+CLIP=1"), Serial.print(" R I N G > ");  //включаем АОН
-        if (at.indexOf(call_phone) > -1) delay(50), m590.println("ATH0"), Timer = 60, enginestart();
+        if (at.indexOf(call_phone) > -1) delay(50), m590.println("ATH0"), Timer = 90, enginestart();
     
     } else if (at.indexOf("123starting10") > -1 ) {                     // команда запуска на 10 мин.
            Serial.println(at);
@@ -118,9 +121,10 @@ void detection(){                                                // услови
     Serial.print(" || Temp0 : "), Serial.print(tempds0);           // дополнительный датчик на двигателе
     Serial.print(" || Temp1 : "), Serial.print(tempds1);           // дополнительный датчик в салоне
     Serial.print(" || Timer2 : "), Serial.print(Timer2);       // таймер 3-х часового отсчета
-    Serial.print(" || Timer ="), Serial.println (Timer); // таймер прогрева
-   
+    Serial.print(" || Timer ="), Serial.println (Timer);      // таймер прогрева
+
     if (Timer > 0 ) Timer--;  
+    if (Timer == 78 && SMS_send == true) SMS_Send();          // отправляем смс спустя 2 минуты (60-6*2=48)   
     if (heating == true && Timer <1) Serial.println("End timer"), heatingstop(); 
     if (heating == true && Vbat < 11.3) Serial.println("Low voltage"), heatingstop(); 
     if (heating == false) digitalWrite(ACTIV_Pin, HIGH), delay (50), digitalWrite(ACTIV_Pin, LOW);  // моргнем светодиодом
@@ -137,12 +141,17 @@ void SMS_Send() {                                                // функци
         Serial.println("SMS send start...");
         m590.println("AT+CMGF=1"), delay(100);                   // устанавливаем режим кодировки СМС
         m590.println("AT+CSCS=\"gsm\""),delay(100);              // кодировки GSM
-        m590.println("AT+CMGS=\"" + SMS_phone + "\""),delay(100);
-        m590.print("Status m590 v 16.10.2017 ");
-        m590.print("\n Temperatura dvigatelja: "), m590.print(tempds0),  m590.print("grad.");
-        m590.print("\n Temperatura salona: "),     m590.print(tempds1), m590.print("grad.");
-        m590.print("\n Vbat: "), m590.print(Vbat), m590.print(" Volt");
-        m590.print("\n PMM: "), m590.print(PMM*2), m590.print("ob./7 sec. ");
+        m590.println("AT+CMGS=\"" + SMS_phone + "\""), delay(100);
+     //   m590.print("Status m590 v 16.10.2017 ");
+        m590.print(stat);
+        m590.print("\n Temp. dvigatelja: "), m590.print(tempds0),    m590.print("grad.");
+        m590.print("\n Temp. salona: "),     m590.print(tempds1),    m590.print("grad.");
+        m590.print("\n Temp. START: "),      m590.print(TempStart),  m590.print("grad.");
+        m590.print("\n V bat. START: "),     m590.print(VbatStart),  m590.print(" Volt");    
+        m590.print("\n V bat.: "),           m590.print(Vbat),       m590.print(" Volt");    
+        m590.print("\n Starter Time: "),     m590.print(StarterTime),m590.print(" miliSec. ");
+        m590.print("\n Ostalos: "),          m590.print(count),      m590.print(" popytok. ");
+     //   m590.print("\n PMM: "), m590.print(PMM*2), m590.print("ob./7 sec. ");
         m590.print("\n Uptime: "), m590.print(millis()/3600000), m590.print(" H.");
         m590.print((char)26),delay(500);
         Serial.print("Temperatura dvigatelja: "), Serial.print(tempds0),  Serial.println("grad.");     
@@ -154,65 +163,86 @@ void SMS_Send() {                                                // функци
              
 
  
-void enginestart() {                                            // вызов цикла запуска
-    Serial.println ("enginestart() > , count = 3 || StarterTime = 1000");
-    int count = 3;                                                  // переменная хранящая число оставшихся потыток зауска
-    int StarterTime = 1000;                                        //  времени работы стартера (1 сек. для первой попытки)  
+void enginestart() {   // цикл вызова запуска
+    count = 3;                                                 // устанавливаем 3 попытки запуска
+    StarterTime = 1000;                                        // времени работы стартера (1 сек. для первой попытки)  
+    TempStart = tempds0;                                       // сохраняем температуру перед стартом
+    VbatStart = Vbat ;                                         // сохраняем напряжение  перед стартом
+    Serial.println ("enginestart() > , count = 3 || StarterTime = 1000");   // определяемся со временем работы стартера
     if (tempds0 < 15  && tempds0 != -127)  StarterTime = 1200, count = 2;   // при 15 - 2 папытки по 1.2 / 1.4 сек
     if (tempds0 < 5   && tempds0 != -127)  StarterTime = 1500, count = 2;   // при  5 - 2 папытки по 1.5 / 1.7 сек
     if (tempds0 < -5  && tempds0 != -127)  StarterTime = 2000, count = 3;   // при -5 - 3 папытки по 2.0 / 2.2 / 2.4 сек
-    if (tempds0 < -10 && tempds0 != -127)  StarterTime = 3000, count = 3;  // при -10 - 3 папытки по 3.0 / 3.2 / 3.4 сек
-    if (tempds0 < -15 && tempds0 != -127)  StarterTime = 5000, count = 4;  // при -15 - 4 папытки по 5.0 / 5.2 / 5.4 / 5.6 сек
-    if (tempds0 < -30 && tempds0 != -127)  StarterTime = 0,    count = 0;    // даже не пытаемся заводиться
+    if (tempds0 < -10 && tempds0 != -127)  StarterTime = 3000, count = 3;   // при -10 - 3 папытки по 3.0 / 3.2 / 3.4 сек
+    if (tempds0 < -15 && tempds0 != -127)  StarterTime = 5000, count = 4;   // при -15 - 4 папытки по 5.0 / 5.2 / 5.4 / 5.6 сек
+    if (tempds0 < -30 && tempds0 != -127)  StarterTime = 0,    count = 0;   // даже не пытаемся заводиться
     
-    while (Vbat > 10.00  && digitalRead(Feedback_Pin) == LOW && digitalRead(STOP_Pin) == LOW && count  > 0) { // цикл запуска
-     // если напряжение АКБ больше 10 вольт, зажигание выключено, КПП в нейтрали  и счетчик числа попыток не равен 0 то...
+    // если напряжение АКБ больше 10 вольт, зажигание выключено и счетчик числа попыток не равен 0 то...
+    while (Vbat > 10.00  && digitalRead(Feedback_Pin) == LOW && count  > 0) { // цикл запуска
+     
     Serial.print ("count = "), Serial.print (count), Serial.print (" ||  StarterTime = "), Serial.println (StarterTime);
      
-    digitalWrite(ACTIV_Pin, HIGH);                        // зажжем светодиод для индикации процесса 
-    digitalWrite(FIRST_P_Pin, HIGH);                      // включаем реле первого положения замка зажигания 
+    digitalWrite(ACTIV_Pin, HIGH);                                          // зажжем светодиод для индикации процесса 
+    digitalWrite(FIRST_P_Pin, HIGH);                                        // включаем реле первого положения замка зажигания 
 
-    digitalWrite(ON_Pin, LOW),    delay (3000);           // выключаем зажигание на 3 сек. на всякий случай  
-    digitalWrite(ON_Pin, HIGH),   delay (5000);           // включаем зажигание  и ждем 5 сек.
+    digitalWrite(ON_Pin, LOW),    delay (3000);                             // выключаем зажигание на 3 сек. на всякий случай  
+    digitalWrite(ON_Pin, HIGH),   delay (5000);                             // включаем зажигание  и ждем 5 сек.
 
-    // дополнительный прогрев свечей при температурах ниже  -5 и - 15 градусов
+    // дополнительный прогрев свечей при температурах ниже  -5 и - 15 градусов для дизелистов
     if (tempds0 < -5 && tempds0 != -127)  digitalWrite(ON_Pin, LOW), delay (2000), digitalWrite(ON_Pin, HIGH), delay (6000);
-    if (tempds0 < -15 && tempds0 != -127) digitalWrite(ON_Pin, LOW), delay (10000), digitalWrite(ON_Pin, HIGH), delay (8000);
+    if (tempds0 < -15 && tempds0 != -127) digitalWrite(ON_Pin, LOW), delay (3000), digitalWrite(ON_Pin, HIGH), delay (8000);
     
-    digitalWrite(STARTER_Pin, HIGH);                     // включаем реле стартера
-    delay (StarterTime);                                 // держим время StarterTime
+    if (digitalRead(STOP_Pin) == LOW) {                                     // если педаль тормоза не нажата в этот момент то...
+                                      digitalWrite(STARTER_Pin, HIGH);      // включаем реле стартера 
+                                      } 
+                                      else
+                                      {                                     // если обноружено нажатие или включенная передача то...
+                                      Serial.print ("heating = false,  STOP  "); 
+                                      digitalWrite(ON_Pin, LOW);
+                                      digitalWrite(ACTIV_Pin, LOW);
+                                      digitalWrite(FIRST_P_Pin, LOW);
+                                      heating = false; 
+                                      stat = "Nent zapuska, avto na peredache";
+                                      SMS_Send();
+                                      break;
+                                      }
+    delay (StarterTime);                                 // держим реле стратера включенным время StarterTime
     digitalWrite(STARTER_Pin, LOW);                      // включаем реле стартера
-    PMM = 0;                                             // обнуляем счетчик импульсов
-    attachInterrupt(1, PMM_count, CHANGE);              // внешним прерыванием добавляем еденицу каждых 2 оборота двигателя
+ /*   PMM = 0;                                             // обнуляем счетчик импульсов
+    attachInterrupt(1, PMM_count, CHANGE);               // внешним прерыванием добавляем еденицу каждых 2 оборота двигателя
     delay (7000);                                        // ожидаем 7 секунд
     detachInterrupt(1);                                  // отключаем прерывание
     Serial.print (" PMM = "), Serial.println (PMM);
-    
+*/   
+
+    delay (10000);                                        // выжидаем 10 секунд для выхода на стабильный холостой ход и зарядку
     Vbat =        analogRead(BAT_Pin), delay (300);       // замеряем напряжение АКБ 1 раз
     Vbat = Vbat + analogRead(BAT_Pin), delay (300);       // через 0.3 сек.  2-й раз 
     Vbat = Vbat + analogRead(BAT_Pin), delay (300);       // через 0.3 сек.  3-й раз
     Vbat = Vbat / m / 3 ;                                 // переводим попугаи в вольты и плучаем срееднне 3-х замеров
 
-    StarterTime = StarterTime + 200;                      // увеличиваем время следующего старта на 0.2 сек.
-    count--;                                              // уменьшаем на еденицу число оставшихся потыток запуска
-    
+     /*оддним из 4 х способов ОПРЕДЕЛЯЕМ ЗАПУЩЕН ЛИ ДВИГАТЕЛЬ */  
      // if (digitalRead(DDM_Pin) != LOW)                  // если детектировать по датчику давления масла /-А-/
      // if (digitalRead(DDM_Pin) != HIGH)                 // если детектировать по датчику давления масла /-В-/
-        if (Vbat > Vstart)                                   // если детектировать по напряжению зарядки     /-С-/
-    //  if (PMM > 10)                                    // если детектировать по выбегу маховика        /-D-/
+        if (Vbat > Vstart)                                // если детектировать по напряжению зарядки     /-С-/
+    //  if (PMM > 10)                                     // если детектировать по выбегу маховика        /-D-/
      {
         Serial.print ("heating = true, break,  Vbat > Vstart = "), Serial.println(Vbat); 
-        heating = true, digitalWrite(ACTIV_Pin, HIGH);
-        SMS_Send();
+        stat = "Zapusk uspeschen";
+        heating = true;
+        //SMS_Send();
         break; // считаем старт успешным, выхдим из цикла запуска двигателя
                         }
                         
         else { // если статра нет вертимся в цикле пока 
-        Serial.print ("heating = false,  Vbat < Vstart = "), Serial.println(Vbat); 
+        Serial.print ("heating = false,  Vbat < Vstart = "), Serial.println(Vbat);   
+        StarterTime = StarterTime + 200;                      // увеличиваем время следующего старта на 0.2 сек.
+        count--;                                              // уменьшаем на еденицу число оставшихся потыток запуска
         digitalWrite(ON_Pin, LOW);
         digitalWrite(ACTIV_Pin, LOW);
         digitalWrite(FIRST_P_Pin, LOW);
-        heating = false, delay(3000);
+        heating = false;
+        stat = "NET ZAPUSKA !!!";
+        delay(3000);
              }
       }
   Serial.println ("Out enginestart().....  ");          // выходим из цикла вызова запуска
@@ -230,7 +260,8 @@ void heatingstop() {  // программа остановки прогрева 
     digitalWrite(ON_Pin, LOW);
     digitalWrite(ACTIV_Pin, LOW);
     digitalWrite(FIRST_P_Pin, LOW);
-    Serial.println ("Warming stopped"),
+    Serial.println ("Warming stopped");
+    stat = "Prinuditelnaja ostanovka";
     heating = false, delay(1000); 
                    }
 
