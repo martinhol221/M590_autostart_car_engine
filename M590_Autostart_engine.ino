@@ -1,7 +1,7 @@
 //https://www.drive2.ru/l/474186105906790427/
 //https://www.drive2.ru/c/476276827267007358/
 #include <SoftwareSerial.h>
-SoftwareSerial m590(5, 4); // RX, TX  для новой платы
+SoftwareSerial m590(4, 5); // RX, TX  для новой платы
 #include <DallasTemperature.h> // https://github.com/milesburton/Arduino-Temperature-Control-Library
 #define ONE_WIRE_BUS 11 // https://github.com/PaulStoffregen/OneWire
 OneWire oneWire(ONE_WIRE_BUS); 
