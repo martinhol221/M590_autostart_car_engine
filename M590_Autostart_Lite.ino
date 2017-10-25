@@ -72,11 +72,11 @@ void loop() {
     } else if (at.indexOf("AT+CSCS=\"gsm\"\r\r\nOK\r\n") > -1)                               {m590.println ("AT+CMGD=1,4"),                                delay(300);
     } else if (at.indexOf("AT+CMGD=1,4\r\r\n") > -1)                                         {m590.println ("AT+CNMI=2,1,0,0,0"),                          delay(300);   
     } else if (at.indexOf("AT+CNMI=2,1,0,0,0\r\r\nOK\r\n") > -1)                             {m590.println ("AT+CMGR=1"),                                  delay(50);  
-    } else if (at.indexOf("AT+XISP=0\r\r\nOK\r\n") > -1 )                                    {m590.println("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\""),delay(50); 
-    } else if (at.indexOf("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\"\r\r\nOK\r\n") > -1 ) {m590.println  ("AT+XGAUTH=1,1,\"life\",\"life\""),           delay (50);
-    } else if (at.indexOf("AT+XGAUTH=1,1,\"life\",\"life\"\r\r\nOK\r\n") > -1 )              {m590.println  ("AT+XIIC=1"),                                 delay (200);
-    } else if (at.indexOf("AT+XIIC=1\r\r\nOK\r\n") > -1 )                                    {m590.println("AT+TCPSETUP=0,94.142.140.101,8283"),           delay (50);
-    } else if (at.indexOf("+TCPSETUP:0,OK") > -1 )                                           {m590.println("AT+TCPSEND=0,75"),                             delay(200); 
+    } else if (at.indexOf("AT+XISP=0\r\r\nOK\r\n") > -1 )                                    {m590.println ("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\""),delay(50); 
+    } else if (at.indexOf("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\"\r\r\nOK\r\n") > -1 ) {m590.println ("AT+XGAUTH=1,1,\"life\",\"life\""),            delay (50);
+    } else if (at.indexOf("AT+XGAUTH=1,1,\"life\",\"life\"\r\r\nOK\r\n") > -1 )              {m590.println ("AT+XIIC=1"),                                  delay (200);
+    } else if (at.indexOf("AT+XIIC=1\r\r\nOK\r\n") > -1 )                                    {m590.println ("AT+TCPSETUP=0,94.142.140.101,8283"),          delay (50);
+    } else if (at.indexOf("+TCPSETUP:0,OK") > -1 )                                           {m590.println ("AT+TCPSEND=0,75"),                            delay(200); 
     } else if (at.indexOf(">") > -1)                                                         { // по приглашению "набиваем" пакет данными и шлем на сервер 
            m590.print("#M5-12-56-78-99-66#M590+Sensor");                                     // индивидуальный номер для народмона 78-99-66 заменяем на свое !!!!
            if (tempds0 > -40 && tempds0 < 54) m590.print("\n#Temp1#"), m590.print(tempds0);  // значение первого датчиака для народмона
