@@ -35,6 +35,7 @@ int modem =0;            // переменная состояние модема
 bool start = false;      // переменная разовой команды запуска
 bool heating = false;    // переменная состояния режим прогрева двигателя
 bool SMS_send = false;   // флаг разовой отправки СМС
+bool SMS_report = false;   // флаг разовой отправки СМС
 bool n_send = false;     // флаг отправки данных на народмон 
 float Vbat;              // переменная хранящая напряжение бортовой сети
 float Vstart = 12.50;    // поорог распознавания момента запуска по напряжению
@@ -51,8 +52,8 @@ void setup() {
   Serial.begin(9600);     // скорость порта для отладки
   m590.begin(9600);     // скорость порта модема, может быть 38400
   delay(1000);
-  if (digitalRead(STOP_Pin) == HIGH) n_send = true;  // включаем народмон при нажатой педали тормоза при подаче питания 
-  Serial.print("Starting M590 12.10.2017, n_send =  "), Serial.println(n_send);
+  if (digitalRead(STOP_Pin) == HIGH) SMS_report = true;  // включаем народмон при нажатой педали тормоза при подаче питания 
+  Serial.print("Starting M590 12.10.2017, SMS_report =  "), Serial.println(SMS_report);
 //m590.println("AT+IPR=9600");  // настройка скорости M590 если не завелся на 9600 но завелся на 38400
               }
 
@@ -135,7 +136,7 @@ void detection(){                           // условия проверяем
                     }
 
         
-    if (modem == 0 && SMS_send == true) {  // если фаг SMS_send равен 1 высылаем отчет по СМС
+    if (modem == 0 && SMS_send == true && SMS_report == true) {  // если фаг SMS_send равен 1 высылаем отчет по СМС
         delay(3000); 
         m590.println("AT+CMGF=1"),delay(100); // устанавливаем режим кодировки СМС
         m590.println("AT+CSCS=\"gsm\""),delay(100);  // кодировки GSM
