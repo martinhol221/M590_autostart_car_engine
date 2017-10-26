@@ -19,19 +19,17 @@ DallasTemperature sensors(&oneWire);
 #define ring_Pin 2         // на 10-ю ногу модема для пробуждения ардуино
 
 
-float tempds0;             // переменная хранения температуры с датчика двигателя
-float tempds1;             // переменная хранения температуры с датчика на улице
+float TempDS0;             // переменная хранения температуры с датчика двигателя
+float TempDS1;             // переменная хранения температуры с датчика на улице
 
 int k = 0;
 int led = 13;
-//int count = 0 ;         // счетчик неудачных попыток запуска  
-int interval = 3;        // интервал отправки данных на народмон 
+int interval = 2;        // интервал отправки данных на народмон 20 сек после старта
 String at = "";
 String SMS_phone = "+375000000000"; // куда шлем СМС
 String call_phone = "375000000000"; // телефон хозяина без плюса
 unsigned long Time1 = 0;
 int WarmUpTimer = 0;     // переменная времени прогрева двигателя по умолчанию
-int modem =0;            // переменная состояние модема
 bool start = false;      // переменная разовой команды запуска
 bool heating = false;    // переменная состояния режим прогрева двигателя
 bool SMS_send = false;   // флаг разовой отправки СМС
@@ -79,8 +77,8 @@ void loop() {
     } else if (at.indexOf("+TCPSETUP:0,OK") > -1 )                                           {m590.println ("AT+TCPSEND=0,75"),                            delay(300); 
     } else if (at.indexOf("AT+TCPSEND=0,75\r\r\n>") > -1)                                    {// по приглашению "набиваем" пакет данными и шлем на сервер 
            m590.print("#M5-12-56-78-99-66#M590+DS18b20");                                    // индивидуальный номер для народмона 78-99-66 заменяем на свое !!!!
-           if (tempds0 > -40 && tempds0 < 54) m590.print("\n#Temp1#"), m590.print(tempds0);  // значение первого датчиака для народмона
-           if (tempds1 > -40 && tempds1 < 54) m590.print("\n#Temp2#"), m590.print(tempds1);  // значение второго датчиака для народмона
+           if (TempDS0 > -40 && TempDS0 < 54) m590.print("\n#Temp1#"), m590.print(TempDS0);  // значение первого датчиака для народмона
+           if (TempDS1 > -40 && TempDS1 < 54) m590.print("\n#Temp2#"), m590.print(TempDS1);  // значение второго датчиака для народмона
            m590.print("\n#Vbat#"), m590.print(Vbat);                                         // напряжение АКБ для отображения на народмоне
            m590.print("\n#Uptime#"), m590.print(millis()/3600000);                           // время непрерывной работы устройства
         // delay (50), m590.println("AT+TCPCLOSE=0");                                        // закрываем пакет
@@ -107,13 +105,13 @@ if (heating == true) {
 }   
 void detection(){                           // условия проверяемые каждые 10 сек  
     sensors.requestTemperatures();          // читаем температуру с трех датчиков
-    tempds0 = sensors.getTempCByIndex(0);
-    tempds1 = sensors.getTempCByIndex(1);
+    TempDS0 = sensors.getTempCByIndex(0);
+    TempDS1 = sensors.getTempCByIndex(1);
     
   Vbat = analogRead(BAT_Pin);              // замеряем напряжение на батарее
   Vbat = Vbat / m ;                        // переводим попугаи в вольты
  /* Serial.print("Vbat= "), Serial.print(Vbat), Serial.print (" V.");  
-  Serial.print(" || Temp : "), Serial.print(tempds0);  
+  Serial.print(" || Temp : "), Serial.print(TempDS0);  
   Serial.print(" || Interval : "), Serial.print(interval);  
   Serial.print(" || WarmUpTimer ="), Serial.println (WarmUpTimer);
 
@@ -126,8 +124,8 @@ void detection(){                           // условия проверяем
         Serial.print("SMS send start...");
         m590.println("AT+CMGS=\"" + SMS_phone + "\""), delay(100);
         m590.print("Status m590 v 12.10.2017 ");
-        m590.print("\n Temp.Dvig: "), m590.print(tempds0);
-        m590.print("\n Temp.Salon: "), m590.print(tempds1);
+        m590.print("\n Temp.Dvig: "), m590.print(TempDS0);
+        m590.print("\n Temp.Salon: "), m590.print(TempDS1);
         m590.print("\n Vbat: "), m590.print(Vbat);
         m590.print((char)26),delay(100), SMS_send = false;    
         Serial.println(".... SMS send stop"), delay(1000);
@@ -149,15 +147,24 @@ void enginestart() {                                      // программа 
 // Serial.println ("enginestart() > , count = 3 || StarterTime = 1000");
 int count = 3;                                            // переменная хранящая число оставшихся потыток зауска
 int StarterTime = 1400;                                   // переменная хранения времени работы стартера (1 сек. для первой попытки)  
+if (TempDS0 < 15 && TempDS0 != -127)  StarterTime = 1200, count = 2;   // при 15 градусах крутим 1.2 сек 2 попытки 
+if (TempDS0 < 5  && TempDS0 != -127)  StarterTime = 1800, count = 2;   // при 5  градусах крутим 1.8 сек 2 попытки 
+if (TempDS0 < -5 && TempDS0 != -127)  StarterTime = 2200, count = 3;   // при -5 градусах крутим 2.2 сек 3 попытки 
+if (TempDS0 <-10 && TempDS0 != -127)  StarterTime = 3300, count = 4;   //при -10 градусах крутим 3.3 сек 4 попытки 
+if (TempDS0 <-15 && TempDS0 != -127)  StarterTime = 6000, count = 5;   //при -15 градусах крутим 6.0 сек 5 попыток 
+if (TempDS0 <-20 && TempDS0 != -127)  StarterTime = 1,count = 0, SMS_send = true;   //при -20 отправляем СМС 
 
  while (Vbat > 10.00 && digitalRead(Feedback_Pin) == LOW && count > 0) 
     { // если напряжение АКБ больше 10 вольт, зажигание выключено, счетчик числа попыток не равен 0 то...
    
     Serial.print ("count = "), Serial.println (count), Serial.print (" ||  StarterTime = "), Serial.println (StarterTime);
 
-    digitalWrite(ON_Pin, LOW),    delay (3000);           // выключаем зажигание на 3 сек. на всякий случай   
-    digitalWrite(FIRST_P_Pin, HIGH);                      // включаем реле первого положения замка зажигания 
-    digitalWrite(ON_Pin, HIGH),   delay (5000);           // включаем зажигание  и ждем 5 сек.
+    digitalWrite(ON_Pin, LOW),       delay (2000);        // выключаем зажигание на 2 сек. на всякий случай   
+    digitalWrite(FIRST_P_Pin, HIGH), delay (500);         // включаем реле первого положения замка зажигания 
+    digitalWrite(ON_Pin, HIGH),      delay (4000);        // включаем зажигание  и ждем 4 сек.
+
+    if (TempDS0 < -5 &&  TempDS0 != -127) digitalWrite(ON_Pin, LOW),  delay (2000), digitalWrite(ON_Pin, HIGH), delay (8000);
+    if (TempDS0 < -15 && TempDS0 != -127) digitalWrite(ON_Pin, LOW), delay (10000), digitalWrite(ON_Pin, HIGH), delay (8000);
 
     if (digitalRead(STOP_Pin) == LOW) digitalWrite(STARTER_Pin, HIGH); // включаем реле стартера
     
