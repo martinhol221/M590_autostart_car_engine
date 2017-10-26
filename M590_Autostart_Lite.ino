@@ -26,15 +26,15 @@ int k = 0;
 int led = 13;
 int interval = 2;        // интервал отправки данных на народмон 20 сек после старта
 String at = "";
-String SMS_phone = "+375000000000"; // куда шлем СМС
-String call_phone = "375000000000"; // телефон хозяина без плюса
+String SMS_phone = "+375291853337"; // куда шлем СМС
+String call_phone = "375295912507"; // телефон хозяина без плюса
 unsigned long Time1 = 0;
 int WarmUpTimer = 0;     // переменная времени прогрева двигателя по умолчанию
 bool start = false;      // переменная разовой команды запуска
 bool heating = false;    // переменная состояния режим прогрева двигателя
 bool SMS_send = false;   // флаг разовой отправки СМС
 bool SMS_report = false;   // флаг разовой отправки СМС
-bool n_send = false;     // флаг отправки данных на народмон 
+bool n_send = true;     // флаг отправки данных на народмон 
 float Vbat;              // переменная хранящая напряжение бортовой сети
 float Vstart = 12.50;    // поорог распознавания момента запуска по напряжению
 float m = 69.80;         // делитель для перевода АЦП в вольты для резистров 39/11kOm
@@ -48,7 +48,7 @@ void setup() {
   digitalWrite(boot_Pin, LOW);
 
   Serial.begin(9600);     // скорость порта для отладки
-  m590.begin(9600);     // скорость порта модема, может быть 38400
+  m590.begin(38400);     // скорость порта модема, может быть 38400
   delay(1000);
   if (digitalRead(STOP_Pin) == HIGH) SMS_report = true;  // включаем народмон при нажатой педали тормоза при подаче питания 
   Serial.print("Starting M590 12.10.2017, SMS_report =  "), Serial.println(SMS_report);
@@ -58,30 +58,31 @@ void setup() {
 void loop() {
   if (m590.available()) { // если что-то пришло от модема 
     while (m590.available()) k = m590.read(), at += char(k),delay(1);
-    Serial.println(at);  //  вернем пакет в монитор порта
+    
     
     if (at.indexOf("RING") > -1) {
         m590.println("AT+CLIP=1");                                                           //включаем АОН
         if (at.indexOf(call_phone) > -1) delay(50), m590.println("ATH0"), WarmUpTimer = 60, start = true;
    
     } else if (at.indexOf("+PBREADY\r\n") > -1)                                              {m590.println ("ATE1"),                                       delay(100); 
+    } else if (at.indexOf("ATE1\r\r\nOK\r\n") > -1)                                          {m590.println ("AT+CMGF=1"),                                  delay(100);
     } else if (at.indexOf("AT+CMGF=1\r\r\nOK\r\n") > -1)                                     {m590.println ("AT+CSCS=\"gsm\""),                            delay(100);
     } else if (at.indexOf("AT+CSCS=\"gsm\"\r\r\nOK\r\n") > -1)                               {m590.println ("AT+CMGD=1,4"),                                delay(300);
     } else if (at.indexOf("AT+CMGD=1,4\r\r\n") > -1)                                         {m590.println ("AT+CNMI=2,1,0,0,0"),                          delay(300);   
-    } else if (at.indexOf("AT+CNMI=2,1,0,0,0\r\r\nOK\r\n") > -1)                             {m590.println ("AT+CMGR=1"),                                  delay(50);  
+  //  } else if (at.indexOf("AT+CNMI=2,1,0,0,0\r\r\nOK\r\n") > -1)                             {m590.println ("AT+CMGR=1"),                                  delay(50);  
    
-    } else if (at.indexOf("AT+XISP=0\r\r\nOK\r\n") > -1 )                                    {m590.println ("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\""),delay(50); 
-    } else if (at.indexOf("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\"\r\r\nOK\r\n") > -1 ) {m590.println ("AT+XGAUTH=1,1,\"life\",\"life\""),            delay (50);
-    } else if (at.indexOf("AT+XGAUTH=1,1,\"life\",\"life\"\r\r\nOK\r\n") > -1 )              {m590.println ("AT+XIIC=1"),                                  delay (200);
-    } else if (at.indexOf("AT+XIIC=1\r\r\nOK\r\n") > -1 )                                    {m590.println ("AT+TCPSETUP=0,94.142.140.101,8283"),          delay (50);
-    } else if (at.indexOf("+TCPSETUP:0,OK") > -1 )                                           {m590.println ("AT+TCPSEND=0,75"),                            delay(300); 
+    } else if (at.indexOf("AT+XISP=0\r\r\nOK\r\n") > -1 )                                    {delay(30), m590.println ("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\""), delay(300); 
+    } else if (at.indexOf("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\"\r\r\nOK\r\n") > -1 ) {delay(30), m590.println ("AT+XGAUTH=1,1,\"life\",\"life\""),   delay (300);       // (at.indexOf("AT+XGAUTH=1,1,\"life\",\"life\"\r\r\nOK\r\n") > -1 )
+    } else if (at.indexOf("AT+XGAUTH=1,1,\"life\",\"life\"\r\r\nOK\r\n") > -1 )              {delay(30), m590.println ("AT+XIIC=1"),                         delay (300);
+    } else if (at.indexOf("AT+XIIC=1\r\r\nOK\r\n") > -1 )                                    {delay(30), m590.println ("AT+TCPSETUP=0,94.142.140.101,8283"), delay (1000);
+    } else if (at.indexOf("+TCPSETUP:0,") > -1 )                                             {delay(30), m590.println ("AT+TCPSEND=0,75"),                   delay (300);  //(at.indexOf("AT+TCPSEND=0,75\r\r\n>")
     } else if (at.indexOf("AT+TCPSEND=0,75\r\r\n>") > -1)                                    {// по приглашению "набиваем" пакет данными и шлем на сервер 
            m590.print("#M5-12-56-78-99-66#M590+DS18b20");                                    // индивидуальный номер для народмона 78-99-66 заменяем на свое !!!!
            if (TempDS0 > -40 && TempDS0 < 54) m590.print("\n#Temp1#"), m590.print(TempDS0);  // значение первого датчиака для народмона
            if (TempDS1 > -40 && TempDS1 < 54) m590.print("\n#Temp2#"), m590.print(TempDS1);  // значение второго датчиака для народмона
            m590.print("\n#Vbat#"), m590.print(Vbat);                                         // напряжение АКБ для отображения на народмоне
            m590.print("\n#Uptime#"), m590.print(millis()/3600000);                           // время непрерывной работы устройства
-        // delay (50), m590.println("AT+TCPCLOSE=0");                                        // закрываем пакет
+           delay (50), m590.println("AT+TCPCLOSE=0");                                        // закрываем пакет
             Serial.print("Send Narodmon");
     } else if (at.indexOf("+TCPRECV:0,") > -1 )                                              {delay (5000), m590.println("AT+TCPCLOSE=0");  
 
@@ -95,6 +96,7 @@ void loop() {
     } else if (at.indexOf("123stop") > -1 )       { WarmUpTimer = 0;  // команда остановки остановки
     
     }
+     Serial.println(at);  //  вернем пакет в монитор порта
      at = "";                                                                        // очищаем переменную
 }
 
@@ -110,7 +112,7 @@ void detection(){                           // условия проверяем
     
   Vbat = analogRead(BAT_Pin);              // замеряем напряжение на батарее
   Vbat = Vbat / m ;                        // переводим попугаи в вольты
- /* Serial.print("Vbat= "), Serial.print(Vbat), Serial.print (" V.");  
+/*  Serial.print("Vbat= "), Serial.print(Vbat), Serial.print (" V.");  
   Serial.print(" || Temp : "), Serial.print(TempDS0);  
   Serial.print(" || Interval : "), Serial.print(interval);  
   Serial.print(" || WarmUpTimer ="), Serial.println (WarmUpTimer);
@@ -139,7 +141,7 @@ void detection(){                           // условия проверяем
     if (heating == true && Vbat < 11.0)    Serial.println("Low voltage"), heatingstop(); 
     if (heating == false)  digitalWrite(ACTIV_Pin, HIGH), delay (50), digitalWrite(ACTIV_Pin, LOW);  // моргнем светодиодом
     if (n_send == true)    interval--;
-    if (interval <1 )      interval = 30, m590.println ("AT+XISP=0"), delay(50);                    // выходим в интернет
+    if (interval <1 )      interval = 30, m590.println ("AT+XISP=0"), delay(100);                    // выходим в интернет
    
 }             
  
