@@ -76,14 +76,14 @@ void loop() {
     } else if (at.indexOf("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\"\r\r\nOK\r\n") > -1 ) {m590.println ("AT+XGAUTH=1,1,\"life\",\"life\""),            delay (50);
     } else if (at.indexOf("AT+XGAUTH=1,1,\"life\",\"life\"\r\r\nOK\r\n") > -1 )              {m590.println ("AT+XIIC=1"),                                  delay (200);
     } else if (at.indexOf("AT+XIIC=1\r\r\nOK\r\n") > -1 )                                    {m590.println ("AT+TCPSETUP=0,94.142.140.101,8283"),          delay (50);
-    } else if (at.indexOf("+TCPSETUP:0,OK") > -1 )                                           {m590.println ("AT+TCPSEND=0,75"),                            delay(200); 
-    } else if (at.indexOf(">") > -1)                                                         { // по приглашению "набиваем" пакет данными и шлем на сервер 
-           m590.print("#M5-12-56-78-99-66#M590+Sensor");                                     // индивидуальный номер для народмона 78-99-66 заменяем на свое !!!!
+    } else if (at.indexOf("+TCPSETUP:0,OK") > -1 )                                           {m590.println ("AT+TCPSEND=0,75"),                            delay(300); 
+    } else if (at.indexOf("AT+TCPSEND=0,75\r\r\n>") > -1)                                    {// по приглашению "набиваем" пакет данными и шлем на сервер 
+           m590.print("#M5-12-56-78-99-66#M590+DS18b20");                                    // индивидуальный номер для народмона 78-99-66 заменяем на свое !!!!
            if (tempds0 > -40 && tempds0 < 54) m590.print("\n#Temp1#"), m590.print(tempds0);  // значение первого датчиака для народмона
            if (tempds1 > -40 && tempds1 < 54) m590.print("\n#Temp2#"), m590.print(tempds1);  // значение второго датчиака для народмона
            m590.print("\n#Vbat#"), m590.print(Vbat);                                         // напряжение АКБ для отображения на народмоне
-           m590.println("\n##");                                                             // обязательный параметр окончания пакета данных
-           delay (50), m590.println("AT+TCPCLOSE=0");                                        // закрываем пакет
+           m590.print("\n#Uptime#"), m590.print(millis()/3600000);                           // время непрерывной работы устройства
+        // delay (50), m590.println("AT+TCPCLOSE=0");                                        // закрываем пакет
     } else if (at.indexOf("+TCPRECV:0,") > -1 )                                              {delay (5000), m590.println("AT+TCPCLOSE=0");  
     
   //} else if (at.indexOf("\"SM\",") > -1) {Serial.println("in SMS"); // если пришло SMS 
