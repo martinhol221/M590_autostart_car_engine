@@ -52,7 +52,9 @@ void setup() {
   delay(1000);
   if (digitalRead(STOP_Pin) == HIGH) SMS_report = true;  // включаем народмон при нажатой педали тормоза при подаче питания 
   Serial.print("Starting M590 12.10.2017, SMS_report =  "), Serial.println(SMS_report);
-//m590.println("AT+IPR=9600");  // настройка скорости M590 если не завелся на 9600 но завелся на 38400
+ // m590.println("AT+IPR=38400");  // настройка скорости M590 если не завелся на 9600 но завелся на 38400
+ //delay (1000);
+ // m590.begin(38400);
               }
 
 void loop() {
@@ -73,18 +75,20 @@ void loop() {
    
     } else if (at.indexOf("AT+XISP=0\r\r\nOK\r\n") > -1 )                                    {delay(30), m590.println ("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\""), delay(300); 
     } else if (at.indexOf("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\"\r\r\nOK\r\n") > -1 ) {delay(30), m590.println ("AT+XGAUTH=1,1,\"life\",\"life\""),   delay (300);       // (at.indexOf("AT+XGAUTH=1,1,\"life\",\"life\"\r\r\nOK\r\n") > -1 )
-    } else if (at.indexOf("AT+XGAUTH=1,1,\"life\",\"life\"\r\r\nOK\r\n") > -1 )              {delay(30), m590.println ("AT+XIIC=1"),                         delay (300);
-    } else if (at.indexOf("AT+XIIC=1\r\r\nOK\r\n") > -1 )                                    {delay(30), m590.println ("AT+TCPSETUP=0,94.142.140.101,8283"), delay (1000);
-    } else if (at.indexOf("+TCPSETUP:0,") > -1 )                                             {delay(30), m590.println ("AT+TCPSEND=0,75"),                   delay (300);  //(at.indexOf("AT+TCPSEND=0,75\r\r\n>")
+    } else if (at.indexOf("AT+XGAUTH=1,1,\"life\",\"life\"") > -1 )                          {delay(30), m590.println ("AT+XIIC=1"),                         delay (300);
+    } else if (at.indexOf("AT+XIIC=1\r\r\nOK\r\n") > -1 )                                    {delay(30), m590.println ("AT+TCPSETUP=0,94.142.140.101,8283"), delay (2000);
+    } else if (at.indexOf("+TCPSETUP:0,OK") > -1 )                                           { m590.println ("AT+TCPSEND=0,75"),                             delay (200);  //(at.indexOf("AT+TCPSEND=0,75\r\r\n>")
     } else if (at.indexOf("AT+TCPSEND=0,75\r\r\n>") > -1)                                    {// по приглашению "набиваем" пакет данными и шлем на сервер 
-           m590.print("#M5-12-56-78-99-66#M590+DS18b20");                                    // индивидуальный номер для народмона 78-99-66 заменяем на свое !!!!
-           if (TempDS0 > -40 && TempDS0 < 54) m590.print("\n#Temp1#"), m590.print(TempDS0);  // значение первого датчиака для народмона
-           if (TempDS1 > -40 && TempDS1 < 54) m590.print("\n#Temp2#"), m590.print(TempDS1);  // значение второго датчиака для народмона
-           m590.print("\n#Vbat#"), m590.print(Vbat);                                         // напряжение АКБ для отображения на народмоне
-           m590.print("\n#Uptime#"), m590.print(millis()/3600000);                           // время непрерывной работы устройства
-           delay (50), m590.println("AT+TCPCLOSE=0");                                        // закрываем пакет
-            Serial.print("Send Narodmon");
-    } else if (at.indexOf("+TCPRECV:0,") > -1 )                                              {delay (5000), m590.println("AT+TCPCLOSE=0");  
+           Serial.print("Send Narodmon.ru");      
+          m590.print("#AB-12-56-55-99-66#M590+DS18b20");                                    // индивидуальный номер для народмона 78-99-66 заменяем на свое !!!!
+          if (TempDS0 > -40 && TempDS0 < 54) m590.print("\n#Temp1#"), m590.print(TempDS0);  // значение первого датчиака для народмона
+          if (TempDS1 > -40 && TempDS1 < 54) m590.print("\n#Temp2#"), m590.print(TempDS1);  // значение второго датчиака для народмона
+          m590.print("\n#Vbat#"), m590.print(Vbat);                                         // напряжение АКБ для отображения на народмоне
+          m590.print("\n#Uptime#"), m590.print(millis()/3600000);                           // время непрерывной работы устройства
+          m590.println("\n##");      // обязательный параметр окончания пакета данных
+          delay (50), m590.println("AT+TCPCLOSE=0");                                        // закрываем пакет
+           
+    } else if (at.indexOf("+TCPRECV:0,") > -1 )                                              {delay (500), m590.println("AT+TCPCLOSE=0");  
 
   //  } else if (at.indexOf("AT+CMGS=\"" + SMS_phone + "\"\r\r\n>") > -1)                                    {// по приглашению "набираем" СМС-ку
 
