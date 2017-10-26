@@ -67,11 +67,11 @@ void loop() {
         if (at.indexOf(call_phone) > -1) delay(50), m590.println("ATH0"), WarmUpTimer = 60, start = true;
    
     } else if (at.indexOf("+PBREADY\r\n") > -1)                                              {m590.println ("ATE1"),                                       delay(100); 
-    } else if (at.indexOf("ATE1\r\r\nOK\r\n") > -1)                                          {m590.println ("AT+CMGF=1"),                                  delay(100);
     } else if (at.indexOf("AT+CMGF=1\r\r\nOK\r\n") > -1)                                     {m590.println ("AT+CSCS=\"gsm\""),                            delay(100);
     } else if (at.indexOf("AT+CSCS=\"gsm\"\r\r\nOK\r\n") > -1)                               {m590.println ("AT+CMGD=1,4"),                                delay(300);
     } else if (at.indexOf("AT+CMGD=1,4\r\r\n") > -1)                                         {m590.println ("AT+CNMI=2,1,0,0,0"),                          delay(300);   
     } else if (at.indexOf("AT+CNMI=2,1,0,0,0\r\r\nOK\r\n") > -1)                             {m590.println ("AT+CMGR=1"),                                  delay(50);  
+   
     } else if (at.indexOf("AT+XISP=0\r\r\nOK\r\n") > -1 )                                    {m590.println ("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\""),delay(50); 
     } else if (at.indexOf("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\"\r\r\nOK\r\n") > -1 ) {m590.println ("AT+XGAUTH=1,1,\"life\",\"life\""),            delay (50);
     } else if (at.indexOf("AT+XGAUTH=1,1,\"life\",\"life\"\r\r\nOK\r\n") > -1 )              {m590.println ("AT+XIIC=1"),                                  delay (200);
@@ -84,11 +84,16 @@ void loop() {
            m590.print("\n#Vbat#"), m590.print(Vbat);                                         // напряжение АКБ для отображения на народмоне
            m590.print("\n#Uptime#"), m590.print(millis()/3600000);                           // время непрерывной работы устройства
         // delay (50), m590.println("AT+TCPCLOSE=0");                                        // закрываем пакет
+            Serial.print("Send Narodmon");
     } else if (at.indexOf("+TCPRECV:0,") > -1 )                                              {delay (5000), m590.println("AT+TCPCLOSE=0");  
+
+  //  } else if (at.indexOf("AT+CMGS=\"" + SMS_phone + "\"\r\r\n>") > -1)                                    {// по приглашению "набираем" СМС-ку
+
+
     
   //} else if (at.indexOf("\"SM\",") > -1) {Serial.println("in SMS"); // если пришло SMS 
-    } else if (at.indexOf("123starting10") > -1 ) { WarmUpTimer = 60,  start = true; // команда запуска на 10 мин.
-    } else if (at.indexOf("123starting20") > -1 ) { WarmUpTimer = 120, start = true; // команда запуска на 20 мин.
+ //   } else if (at.indexOf("123starting10") > -1 ) { WarmUpTimer = 60,  start = true; // команда запуска на 10 мин.
+ //   } else if (at.indexOf("123starting20") > -1 ) { WarmUpTimer = 120, start = true; // команда запуска на 20 мин.
     } else if (at.indexOf("123stop") > -1 )       { WarmUpTimer = 0;  // команда остановки остановки
     
     }
@@ -124,10 +129,9 @@ void detection(){                           // условия проверяем
         m590.print("\n Temp.Dvig: "), m590.print(tempds0);
         m590.print("\n Temp.Salon: "), m590.print(tempds1);
         m590.print("\n Vbat: "), m590.print(Vbat);
-        m590.print((char)26),delay(100);     
+        m590.print((char)26),delay(100), SMS_send = false;    
         Serial.println(".... SMS send stop"), delay(1000);
-        SMS_send = false;
-              }
+                                               }
              
      
     if (WarmUpTimer > 0 && start == true) Serial.println("Starting engine..."), start = false, enginestart(); 
@@ -194,4 +198,3 @@ void heatingstop() {  // программа остановки прогрева 
     Serial.println ("Ignition OFF"),
     heating= false,                 delay(3000); 
                    }
-d
