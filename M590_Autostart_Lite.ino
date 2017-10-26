@@ -194,3 +194,4 @@ void heatingstop() {  // программа остановки прогрева 
     Serial.println ("Ignition OFF"),
     heating= false,                 delay(3000); 
                    }
+d
