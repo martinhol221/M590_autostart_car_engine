@@ -26,8 +26,8 @@ int k = 0;
 int led = 13;
 int interval = 2;        // интервал отправки данных на народмон 20 сек после старта
 String at = "";
-String SMS_phone = "+375291853337"; // куда шлем СМС
-String call_phone = "375295912507"; // телефон хозяина без плюса
+String SMS_phone = "+375000000000"; // куда шлем СМС
+String call_phone = "375000000000"; // телефон хозяина без плюса
 unsigned long Time1 = 0;
 int WarmUpTimer = 0;     // переменная времени прогрева двигателя по умолчанию
 bool start = false;      // переменная разовой команды запуска
@@ -77,19 +77,23 @@ void loop() {
     } else if (at.indexOf("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\"\r\r\nOK\r\n") > -1 ) {delay(30), m590.println ("AT+XGAUTH=1,1,\"life\",\"life\""),   delay (300);       // (at.indexOf("AT+XGAUTH=1,1,\"life\",\"life\"\r\r\nOK\r\n") > -1 )
     } else if (at.indexOf("AT+XGAUTH=1,1,\"life\",\"life\"") > -1 )                          {delay(30), m590.println ("AT+XIIC=1"),                         delay (300);
     } else if (at.indexOf("AT+XIIC=1\r\r\nOK\r\n") > -1 )                                    {delay(30), m590.println ("AT+TCPSETUP=0,94.142.140.101,8283"), delay (2000);
-    } else if (at.indexOf("+TCPSETUP:0,OK") > -1 )                                           { m590.println ("AT+TCPSEND=0,75"),                             delay (200);  //(at.indexOf("AT+TCPSEND=0,75\r\r\n>")
+    } else if (at.indexOf("+TCPSETUP:") > -1 )                                               { m590.println ("AT+TCPSEND=0,75"),                             delay (200);  //(at.indexOf("AT+TCPSEND=0,75\r\r\n>")
     } else if (at.indexOf("AT+TCPSEND=0,75\r\r\n>") > -1)                                    {// по приглашению "набиваем" пакет данными и шлем на сервер 
-           Serial.print("Send Narodmon.ru");      
-          m590.print("#AB-12-56-55-99-66#M590+DS18b20");                                    // индивидуальный номер для народмона 78-99-66 заменяем на свое !!!!
-          if (TempDS0 > -40 && TempDS0 < 54) m590.print("\n#Temp1#"), m590.print(TempDS0);  // значение первого датчиака для народмона
-          if (TempDS1 > -40 && TempDS1 < 54) m590.print("\n#Temp2#"), m590.print(TempDS1);  // значение второго датчиака для народмона
-          m590.print("\n#Vbat#"), m590.print(Vbat);                                         // напряжение АКБ для отображения на народмоне
-          m590.print("\n#Uptime#"), m590.print(millis()/3600000);                           // время непрерывной работы устройства
-          m590.println("\n##");      // обязательный параметр окончания пакета данных
-          delay (50), m590.println("AT+TCPCLOSE=0");                                        // закрываем пакет
+         m590.print("#59-01-AA-00-00-00#M590+Sensor"); // индивидуальный номер для народмона XX-XX-XX заменяем на свое придуманное !!! 
+         if (TempDS0 > -40 && TempDS0 < 54) m590.print("\n#Temp1#"), m590.print(TempDS0);  // значение первого датчиака для народмона
+         if (TempDS1 > -40 && TempDS1 < 54) m590.print("\n#Temp2#"), m590.print(TempDS1);  // значение второго датчиака для народмона
+         m590.print("\n#Vbat#"), m590.print(Vbat);  // напряжение АКБ для отображения на народмоне
+         m590.println("\n##");      // обязательный параметр окончания пакета данных
+        
+       Serial.print("#59-01-AA-00-00-00#M590+Sensor"); // индивидуальный номер для народмона XX-XX-XX заменяем на свое придуманное !!! 
+       Serial.print("\n#Temp1#"),  m590.print(TempDS0);
+       Serial.print("\n#Temp2#"),  m590.print(TempDS1);
+       Serial.print("\n#Vbat#"),   m590.print(Vbat);
+       Serial.println("\n##");
+       delay (50), m590.println("AT+TCPCLOSE=0");
            
-    } else if (at.indexOf("+TCPRECV:0,") > -1 )                                              {delay (500), m590.println("AT+TCPCLOSE=0");  
-
+    } else if (at.indexOf("+TCPSEND:0,75") > -1 )                                              {delay (100), m590.println("AT+TCPCLOSE=0");  
+    } else if (at.indexOf("+TCPRECV:0,") > -1 )                                                {delay (500), m590.println("AT+TCPCLOSE=0");  
   //  } else if (at.indexOf("AT+CMGS=\"" + SMS_phone + "\"\r\r\n>") > -1)                                    {// по приглашению "набираем" СМС-ку
 
 
