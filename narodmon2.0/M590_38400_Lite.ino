@@ -76,10 +76,10 @@ void loop() {
     } else if (at.indexOf("AT+XISP=0\r\r\nOK\r\n") > -1 )                                    {delay(30), m590.println ("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\""), delay(50); 
     } else if (at.indexOf("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\"\r\r\nOK\r\n") > -1 ) {delay(30), m590.println ("AT+XGAUTH=1,1,\"life\",\"life\""),   delay (50);       // (at.indexOf("AT+XGAUTH=1,1,\"life\",\"life\"\r\r\nOK\r\n") > -1 )
     } else if (at.indexOf("AT+XGAUTH=1,1,\"life\",\"life\"") > -1 )                          {delay(30), m590.println ("AT+XIIC=1"),                         delay (50);
-    } else if (at.indexOf("AT+XIIC=1\r\r\nOK\r\n") > -1 )                                    {delay(30), m590.println ("AT+TCPSETUP=0,94.142.140.101,8283");
-    } else if (at.indexOf("+TCPSETUP:0,OK") > -1 )                                             { m590.println ("AT+TCPSEND=0,73"),                             delay (200);  //(at.indexOf("AT+TCPSEND=0,75\r\r\n>")
-    } else if (at.indexOf(">") > -1)                                    {// по приглашению "набиваем" пакет данными и шлем на сервер 
-         m590.print("#59-01-AA-77-88-33#M590+Sensor"); // индивидуальный номер для народмона XX-XX-XX заменяем на свое придуманное !!! 
+    } else if (at.indexOf("AT+XIIC=1\r\r\nOK\r\n") > -1 )                                    {delay(30), m590.println ("AT+TCPSETUP=0,94.142.140.101,8283"), delay (1200);
+    } else if (at.indexOf("+TCPSETUP:0,OK") > -1 )                                           { m590.println ("AT+TCPSEND=0,73"),                             delay (200);  //(at.indexOf("AT+TCPSEND=0,75\r\r\n>")
+    } else if (at.indexOf("AT+TCPSEND=0,73\r\r\n>") > -1)                                    {// по приглашению "набиваем" пакет данными и шлем на сервер 
+         m590.print("#59-01-AA-77-88-39#M590+Sensor"); // индивидуальный номер для народмона XX-XX-XX заменяем на свое придуманное !!! 
          m590.print("\n#Temp1#"), m590.print(TempDS0);  // значение первого датчиака для народмона
          m590.print("\n#Temp2#"), m590.print(TempDS1);  // значение второго датчиака для народмона
          m590.print("\n#Vbat#"), m590.print(Vbat);  // напряжение АКБ для отображения на народмоне
