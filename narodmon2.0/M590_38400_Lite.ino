@@ -77,23 +77,23 @@ void loop() {
     } else if (at.indexOf("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\"\r\r\nOK\r\n") > -1 ) {delay(30), m590.println ("AT+XGAUTH=1,1,\"life\",\"life\""),   delay (50);       // (at.indexOf("AT+XGAUTH=1,1,\"life\",\"life\"\r\r\nOK\r\n") > -1 )
     } else if (at.indexOf("AT+XGAUTH=1,1,\"life\",\"life\"") > -1 )                          {delay(30), m590.println ("AT+XIIC=1"),                         delay (50);
     } else if (at.indexOf("AT+XIIC=1\r\r\nOK\r\n") > -1 )                                    {delay(30), m590.println ("AT+TCPSETUP=0,94.142.140.101,8283");
-    } else if (at.indexOf("+TCPSETUP:0,OK") > -1 )                                             { m590.println ("AT+TCPSEND=0,75"),                             delay (200);  //(at.indexOf("AT+TCPSEND=0,75\r\r\n>")
+    } else if (at.indexOf("+TCPSETUP:0,OK") > -1 )                                             { m590.println ("AT+TCPSEND=0,73"),                             delay (200);  //(at.indexOf("AT+TCPSEND=0,75\r\r\n>")
     } else if (at.indexOf(">") > -1)                                    {// по приглашению "набиваем" пакет данными и шлем на сервер 
          m590.print("#59-01-AA-77-88-33#M590+Sensor"); // индивидуальный номер для народмона XX-XX-XX заменяем на свое придуманное !!! 
-         if (TempDS0 > -40 && TempDS0 < 54) m590.print("\n#Temp1#"), m590.print(TempDS0);  // значение первого датчиака для народмона
-         if (TempDS1 > -40 && TempDS1 < 54) m590.print("\n#Temp2#"), m590.print(TempDS1);  // значение второго датчиака для народмона
+         m590.print("\n#Temp1#"), m590.print(TempDS0);  // значение первого датчиака для народмона
+         m590.print("\n#Temp2#"), m590.print(TempDS1);  // значение второго датчиака для народмона
          m590.print("\n#Vbat#"), m590.print(Vbat);  // напряжение АКБ для отображения на народмоне
          m590.println("\n##");      // обязательный параметр окончания пакета данных
         
-       Serial.print("#59-01-AA-77-88-33#M590+Sensor"); // индивидуальный номер для народмона XX-XX-XX заменяем на свое придуманное !!! 
+       Serial.print("#59-01-AA-77-88-39#M590+Sensor"); // индивидуальный номер для народмона XX-XX-XX заменяем на свое придуманное !!! 
        Serial.print("\n#Temp1#"),  m590.print(TempDS0);
        Serial.print("\n#Temp2#"),  m590.print(TempDS1);
        Serial.print("\n#Vbat#"),   m590.print(Vbat);
        Serial.println("\n##");
-       delay (50), m590.println("AT+TCPCLOSE=0");
+      // delay (50), m590.println("AT+TCPCLOSE=0");
            
-    } else if (at.indexOf("+TCPSEND:0,75") > -1 )                                              {delay (100), m590.println("AT+TCPCLOSE=0");  
-    } else if (at.indexOf("+TCPRECV:0,") > -1 )                                                {delay (500), m590.println("AT+TCPCLOSE=0");  
+    } else if (at.indexOf("+TCPSEND:0,73") > -1 )                                              {delay (100), m590.println("AT+TCPCLOSE=0");  
+  //  } else if (at.indexOf("+TCPRECV:0,") > -1 )                                                {delay (500), m590.println("AT+TCPCLOSE=0");  
   //  } else if (at.indexOf("AT+CMGS=\"" + SMS_phone + "\"\r\r\n>") > -1)                                    {// по приглашению "набираем" СМС-ку
 
 
@@ -116,7 +116,9 @@ if (heating == true) {
 void detection(){                           // условия проверяемые каждые 10 сек  
     sensors.requestTemperatures();          // читаем температуру с трех датчиков
     TempDS0 = sensors.getTempCByIndex(0);
+    if (TempDS0 == -127.00) TempDS0 = 20.00;  
     TempDS1 = sensors.getTempCByIndex(1);
+    if (TempDS1 == -127.00) TempDS1 = 20.00;  
     
   Vbat = analogRead(BAT_Pin);              // замеряем напряжение на батарее
   Vbat = Vbat / m ;                        // переводим попугаи в вольты
@@ -133,7 +135,7 @@ void detection(){                           // условия проверяем
         m590.println("AT+CSCS=\"gsm\""),delay(100);  // кодировки GSM
         Serial.print("SMS send start...");
         m590.println("AT+CMGS=\"" + SMS_phone + "\""), delay(100);
-        m590.print("Status m590 v 27.10.2017 ");
+        m590.print("Status m590 v 12.10.2017 ");
         m590.print("\n Temp.Dvig: "), m590.print(TempDS0);
         m590.print("\n Temp.Salon: "), m590.print(TempDS1);
         m590.print("\n Vbat: "), m590.print(Vbat);
@@ -150,7 +152,7 @@ void detection(){                           // условия проверяем
     if (heating == false)  digitalWrite(ACTIV_Pin, HIGH), delay (50), digitalWrite(ACTIV_Pin, LOW);  // моргнем светодиодом
     if (n_send == true)    interval--;
     if (interval <1 )      interval = 30, m590.println ("AT+XISP=0"), delay(100);                    // выходим в интернет
-    if (interval == 28) Serial.println(" modem != 0 && interval == 28 > T C P C L O S E "), m590.println("AT+TCPCLOSE=0");  
+   // if (interval == 28) Serial.println(" modem != 0 && interval == 28 > T C P C L O S E "), m590.println("AT+TCPCLOSE=0");  
 }             
  
 void enginestart() {                                      // программа запуска двигателя
