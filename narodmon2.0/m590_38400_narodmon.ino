@@ -19,26 +19,32 @@ DallasTemperature sensors(&oneWire);
 #define ring_Pin 2         // на 10-ю ногу модема для пробуждения ардуино
 
 
+/*  ----------------------------------------- ИНДИВИДУАЛЬНЫЕ НАСТРОЙКИ !!!---------------------------------------------------------   */
+String call_phone = "375000000000"; // телефон входящего вызова
+String SMS_phone = "+375000000000"; // куда отправляем СМС
+String APN = "internet.life.com.by";// тчка доступа выхода в интернет вашего сотового оператора
+String USER = "life";               // имя выхода в интернет вашего сотового оператора
+String PASS = "life";               // пароль доступа выхода в интернет вашего сотового оператора
+bool n_send = true;                 // отправка данных на народмон включена (true), отключена (fale)
+float Vstart = 12.50;               // поорог распознавания момента запуска по напряжению
+
+/*  ----------------------------------------- ДАЛЕЕ НЕ ТРОГАЕМ --------------------------------------------------------------------   */
 float TempDS0;             // переменная хранения температуры с датчика двигателя
 float TempDS1;             // переменная хранения температуры с датчика на улице
-
+float Vbat;                         // переменная хранящая напряжение бортовой сети
+float m = 69.80;                    // делитель для перевода АЦП в вольты для резистров 39/11kOm
 int k = 0;
 int led = 13;
-int interval = 2;        // интервал отправки данных на народмон 20 сек после старта
+int interval = 2;                  // интервал отправки данных на народмон 20 сек после старта
 String at = "";
-String SMS_phone = "+375000000000"; // куда шлем СМС
-String call_phone = "375000000000"; // телефон хозяина без плюса
 String buf ;
 unsigned long Time1 = 0;
-int WarmUpTimer = 0;     // переменная времени прогрева двигателя по умолчанию
-bool start = false;      // переменная разовой команды запуска
-bool heating = false;    // переменная состояния режим прогрева двигателя
-bool SMS_send = false;   // флаг разовой отправки СМС
-bool SMS_report = false;   // флаг разовой отправки СМС
-bool n_send = true;     // флаг отправки данных на народмон 
-float Vbat;              // переменная хранящая напряжение бортовой сети
-float Vstart = 12.50;    // поорог распознавания момента запуска по напряжению
-float m = 69.80;         // делитель для перевода АЦП в вольты для резистров 39/11kOm
+int WarmUpTimer = 0;               // переменная времени прогрева двигателя по умолчанию
+bool start = false;                // переменная разовой команды запуска
+bool heating = false;              // переменная состояния режим прогрева двигателя
+bool SMS_send = false;             // флаг разовой отправки СМС
+bool SMS_report = false;           // флаг разовой отправки СМС
+
 
 void setup() {
   pinMode(ring_Pin, INPUT);
@@ -74,11 +80,11 @@ void loop() {
     } else if (at.indexOf("AT+CMGD=1,4\r\r\n") > -1)               {m590.println ("AT+CNMI=2,1,0,0,0"),delay(300);      // Разрешаем прием входящих СМС
   //  } else if (at.indexOf("\"SM\","") > -1)                        {m590.println ("AT+CMGR=1"),         delay(50);      // чтение СМС
     /*  ---------------------------------------------------------- ВХОДИМ В ИНТЕРНЕТ ----------------------------------------------------------------------   */
-    } else if (at.indexOf("AT+XISP=0\r\r\nOK\r\n") > -1 )                         {delay(30), m590.println ("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\""), delay(50); 
-    } else if (at.indexOf("AT+CGDCONT=1,\"IP\",\"internet.life.com.by\"\r\r\nOK\r\n") > -1 ) {delay(30), m590.println ("AT+XGAUTH=1,1,\"life\",\"life\""),   delay (50); 
-    } else if (at.indexOf("AT+XGAUTH=1,1,\"life\",\"life\"") > -1 )                          {delay(30), m590.println ("AT+XIIC=1"),                         delay (50);
+    } else if (at.indexOf("AT+XISP=0\r\r\nOK\r\n") > -1 )                       {delay(30), m590.println ("AT+CGDCONT=1,\"IP\",\""+APN+"\""),        delay( 50); 
+    } else if (at.indexOf("AT+CGDCONT=1,\"IP\",\""+APN+"\"\r\r\nOK\r\n") > -1 ) {delay(30), m590.println ("AT+XGAUTH=1,1,\""+USER+"\",\""+PASS+"\""),delay (50); 
+    } else if (at.indexOf("AT+XGAUTH=1,1,\""+USER+"\",\""+PASS+"\"") > -1 )     {delay(30), m590.println ("AT+XIIC=1"),                              delay (50);
     /*  --------------------------------------------------- ПОДКЛЮЧАЕМСЯ К СЕРВЕРУ narodmon.ru:8283 -------------------------------------------------------   */
-    } else if (at.indexOf("AT+XIIC=1\r\r\nOK\r\n") > -1 )                                    {delay(30), m590.println ("AT+TCPSETUP=0,94.142.140.101,8283"), delay (1200);
+    } else if (at.indexOf("AT+XIIC=1\r\r\nOK\r\n") > -1 )                       {delay(30), m590.println ("AT+TCPSETUP=0,94.142.140.101,8283"), delay (1200);
     /*  ------------------------------ ПОЛУЧАЕМ ДОБРО ОТ СЕРВЕРА, СОБИРАЕМ ПАКЕТ ДАННЫХ И ОТПРАВЛЯЕМ ДЛИННУ TCP ПАКЕТА В МОДЕМ ----------------------------   */    
         } else if (at.indexOf("+TCPSETUP:0,OK") > -1 )                                       { buf = "";  // в переменную и набиваем пакет данных:
               buf =       "#59-01-AA-77-88-33#M590+Sensor\n";                       // MAC адресс устройства (придумать свое "#59-01-XX-XX-XX-XX-XX#AudiXXX\r\n" )
@@ -88,13 +94,12 @@ void loop() {
               buf = buf + "#Uptime#" + millis()/60000 + "\n";                       // время работы ардуино в минутах
               buf = buf + "##";                                                   // закрываем пакет ##
               m590.print("AT+TCPSEND=0,"),    m590.print(buf.length()),  m590.println(""), delay (200);    
-              
-// } else if (at.indexOf("AT+TCPSEND=0,73\r\r\n>") > -1)                                     {// 
+
     /*  ------------------------------ ПОЛУЧАЕМ ПРИГЛАШЕНИЕ НА ОТПРАВКУ TCP ПАКЕТА И ШВЫРЯЕМ ЕГО ПАКЕТ В МОДЕМ ---------------------------------------------   */  
-   } else if (at.indexOf("\r\r\n>") > -1)                                              {// по приглашению швырнем пакет с данными на сервер 
+   } else if (at.indexOf("AT+TCPSEND=0,") > -1 && at.indexOf("\r\r\n>") > -1)       {// по приглашению швырнем пакет с данными на сервер 
        m590.print(buf);
        Serial.println(buf);
-       delay (100), m590.println("AT+TCPCLOSE=0");
+       delay (500), m590.println("AT+TCPCLOSE=0");
            
     } else if (at.indexOf("+TCPSEND:0,") > -1 )                                              {delay (100), m590.println("AT+TCPCLOSE=0");  
   //  } else if (at.indexOf("+TCPRECV:0,") > -1 )                                            {delay (500), m590.println("AT+TCPCLOSE=0");  
