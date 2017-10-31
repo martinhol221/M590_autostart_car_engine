@@ -54,12 +54,17 @@ void setup() {
   pinMode(FIRST_P_Pin, OUTPUT);
   pinMode(boot_Pin,    OUTPUT);
   digitalWrite(boot_Pin, LOW);
-
   Serial.begin(9600);              // скорость порта для отладки
   m590.begin(38400);               // скорость порта модема, может быть 38400
   delay(1000);
+
   if (digitalRead(STOP_Pin) == HIGH) SMS_report = true;  // включаем народмон при нажатой педали тормоза при подаче питания 
   Serial.print("Starting M590 12.10.2017, SMS_report =  "), Serial.println(SMS_report);
+
+/*-смена скорости модема с 9600 на 38400:
+установить m590.begin(9600);, раскоментировать m590.println("AT+IPR=38400"), delay (1000);  и m590.begin(38400), прошить
+вернуть  вернуть все обратно и прошить. снова.
+*/
  // m590.println("AT+IPR=38400"), delay (1000); // настройка скорости M590 если не завелся на 9600 но завелся на 38400
  // m590.begin(38400);
               }
