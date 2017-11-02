@@ -38,13 +38,14 @@ float TempDS1;                     // переменная хранения те
 float Vbat;                        // переменная хранящая напряжение бортовой сети
 float m = 69.80;                   // делитель для перевода АЦП в вольты для резистров 39/11kOm
 int k = 0;
-int interval = 2;                  // интервал отправки данных на народмон 20 сек после старта
+int interval = 5;                  // интервал отправки данных на народмон 20 сек после старта
 int WarmUpTimer = 0;               // переменная времени прогрева двигателя по умолчанию
 bool start = false;                // переменная разовой команды запуска
 bool heating = false;              // переменная состояния режим прогрева двигателя
 bool SMS_send = false;             // флаг разовой отправки СМС
 bool SMS_report = true;            // флаг СМС отчета
 unsigned long Time1 = 0;
+
 
 
 void setup() {
@@ -56,16 +57,16 @@ void setup() {
   digitalWrite(boot_Pin, LOW);
   Serial.begin(9600);              // скорость порта для отладки
   m590.begin(38400);               // скорость порта модема, может быть 38400
-  delay(1000);
+  delay(2000);
 
   if (digitalRead(STOP_Pin) == HIGH) SMS_report = true;  // включаем народмон при нажатой педали тормоза при подаче питания 
-  Serial.print("Starting M590 12.10.2017, SMS_report =  "), Serial.println(SMS_report);
+  Serial.print("Starting M590, MAC: "+MAC+" Sensor name: "+SENS+" 02.11.2017, SMS_report =  "), Serial.println(SMS_report);
 
 /*-смена скорости модема с 9600 на 38400:
 установить m590.begin(9600);, раскоментировать m590.println("AT+IPR=38400"), delay (1000);  и m590.begin(38400), прошить
 вернуть  вернуть все обратно и прошить. снова.
 */
- // m590.println("AT+IPR=38400"), delay (1000); // настройка скорости M590 если не завелся на 9600 но завелся на 38400
+// m590.println("AT+IPR=38400"), delay (1000); // настройка скорости M590 если не завелся на 9600 но завелся на 38400
  // m590.begin(38400);
               }
 
@@ -85,8 +86,8 @@ void loop() {
     } else if (at.indexOf("AT+CMGD=1,4\r\r\n") > -1)               {m590.println ("AT+CNMI=2,1,0,0,0"),delay(300);      // Разрешаем прием входящих СМС
     /*  ---------------------------------------------------------- ВХОДИМ В ИНТЕРНЕТ ----------------------------------------------------------------------   */
     } else if (at.indexOf("AT+XISP=0\r\r\nOK\r\n") > -1 )                       {delay(30), m590.println ("AT+CGDCONT=1,\"IP\",\""+APN+"\""),        delay( 50); 
-    } else if (at.indexOf("AT+CGDCONT=1,\"IP\",\""+APN+"\"\r\r\nOK\r\n") > -1 ) {delay(30), m590.println ("AT+XGAUTH=1,1,\""+USER+"\",\""+PASS+"\""),delay (50); 
-    } else if (at.indexOf("AT+XGAUTH=1,1,\""+USER+"\",\""+PASS+"\"") > -1 )     {delay(30), m590.println ("AT+XIIC=1"),                              delay (50);
+    } else if (at.indexOf("AT+CGDCONT=1,\"IP\",\""+APN+"\"\r\r\nOK\r\n") > -1 ) {delay(30), m590.println ("AT+XGAUTH=1,1,\""+USER+"\",\""+PASS+"\""),delay (100); 
+    } else if (at.indexOf("AT+XGAUTH=1,1,\""+USER+"\",\""+PASS+"\"") > -1 )     {delay(30), m590.println ("AT+XIIC=1"),                              delay (100);
     /*  --------------------------------------------------- ПОДКЛЮЧАЕМСЯ К СЕРВЕРУ narodmon.ru:8283 -------------------------------------------------------   */
     } else if (at.indexOf("AT+XIIC=1\r\r\nOK\r\n") > -1 )                       {delay(30), m590.println ("AT+TCPSETUP=0," +SERVER+ ""), delay (1200);
     /*  ------------------------------ ПОЛУЧАЕМ ДОБРО ОТ СЕРВЕРА, СОБИРАЕМ ПАКЕТ ДАННЫХ И ОТПРАВЛЯЕМ ДЛИННУ TCP ПАКЕТА В МОДЕМ ----------------------------   */    
@@ -141,7 +142,7 @@ void detection(){                           // услови проверяемы
     if (heating == false)                               digitalWrite(ACTIV_Pin, HIGH), delay (50), digitalWrite(ACTIV_Pin, LOW);
     if (n_send == true)                                 interval--;
     if (interval <1 )                                   interval = 30, m590.println ("AT+XISP=0"), delay(100); // выходим в интернет
-
+  //  if (interval == 28 )                                delay (100), m590.println("AT+TCPCLOSE=0");
 }             
  
 void enginestart() {                                      // программа запуска двигателя
