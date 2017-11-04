@@ -141,6 +141,7 @@ void detection(){                           // услови проверяемы
         m590.print("\n Temp.Dvig: "),  m590.print(TempDS0);
         m590.print("\n Temp.Salon: "), m590.print(TempDS1);
         m590.print("\n Vbat: "),       m590.print(Vbat);
+        m590.print("\n Webasto time: "), m590.print(Timer_time);
         m590.print((char)26);                   }
 
     if (WarmUpTimer == (Timer_time * 6 - SMS_time * 6)) WarmUpTimer--, SMS_send = true;                   // отправляем СМС 
