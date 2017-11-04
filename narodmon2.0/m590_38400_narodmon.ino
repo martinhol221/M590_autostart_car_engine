@@ -74,11 +74,15 @@ void loop() {
   if (m590.available()) { // если что-то пришло от модема 
     while (m590.available()) k = m590.read(), at += char(k),delay(1);
     
-    if (at.indexOf("RING") > -1) {
-        m590.println("AT+CLIP=1");                                                           //включаем АОН                              
-        if (at.indexOf("CLIP: \""+call_phone+"\",") > -1 && at.indexOf("+CMGR:") == -1 )     // если прилетел номер телефона и он прилетел не из SMS то 
-        delay(50), m590.println("ATH0"), WarmUpTimer = Timer_time * 6, start = true;  // сбрасываем вызов
-  
+    if (at.indexOf("RING") > -1) { m590.println("AT+CLIP=1");                                                          //включаем АОН                              
+        if (at.indexOf("CLIP: \""+call_phone+"\",") > -1 && at.indexOf("+CMGR:") == -1 ) {   // если прилетел номер телефона и он прилетел не из SMS то 
+        delay(50), m590.println("ATH0");
+            if (heating == false) {
+                         enginestart();
+                           } else {
+                         heatingstop();
+                                  }
+        }
     /*  --------------------------------------------------- ПРЕДНАСТРОЙКА МОДЕМА M590 ----------------------------------------------------------------------   */
     } else if (at.indexOf("+PBREADY\r\n") > -1)                    {m590.println ("ATE1"),             delay(100);      // Включить режим ЭХО
     } else if (at.indexOf("ATE1\r\r\nOK\r\n") > -1)                {m590.println ("AT+CMGF=1"),        delay(100);      // Включаем Текстовый режим СМС
@@ -135,7 +139,7 @@ void detection(){                           // услови проверяемы
         m590.print((char)26);                   }
              
      
-    if (WarmUpTimer > 0 && start == true)               Serial.println("Starting engine..."), start = false, enginestart(); 
+ // if (WarmUpTimer > 0 && start == true)               Serial.println("Starting engine..."), start = false, enginestart(); 
     if (WarmUpTimer == (Timer_time * 6 - SMS_time * 6)) WarmUpTimer--, SMS_send = true;                   // отправляем СМС 
     if (WarmUpTimer > 0 )                               WarmUpTimer--;                  // вычитаем из таймера 1 цу каждых 10 сек.
     if (heating == true && WarmUpTimer <1)              Serial.println("End timer"),   heatingstop(); 
@@ -147,7 +151,7 @@ void detection(){                           // услови проверяемы
 }             
  
 void enginestart() {                                      // программа запуска двигателя
-
+WarmUpTimer = Timer_time * 6;                             // запускаем таймер переводя минуты в десятки секунд
 int count = 3;                                            // переменная хранящая число оставшихся потыток зауска
 int StarterTime = 1400;                                   // переменная хранения времени работы стартера (1 сек. для первой попытки)  
 if (TempDS0 < 15 && TempDS0 != -127)  StarterTime = 1200, count = 2;   // при 15 градусах крутим 1.2 сек 2 попытки 
@@ -205,6 +209,6 @@ void heatingstop() {  // программа остановки прогрева 
     digitalWrite(ON_Pin, LOW),      delay (200);
     digitalWrite(ACTIV_Pin, LOW),   delay (200);
     digitalWrite(FIRST_P_Pin, LOW), delay (200);
-    Serial.println ("Ignition OFF"),
+    Serial.println ("Ignition OFF");
     heating= false,                 delay(3000); 
                    }
