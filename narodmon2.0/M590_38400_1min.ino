@@ -111,6 +111,7 @@ void loop() {
    /*  --------------------------------------------- РЕАКЦИЯ НА ВХОДЯЩЕЕ СМС -------------------------------------------------------------------------------- */ 
    } else if (at.indexOf("\"SM\",") > -1)         { m590.println("AT+CMGR=1"), delay(20), m590.println("AT+CMGD=1,4"), delay(20); // читаем СМС и удаляем их все   
    } else if (at.indexOf(""+PIN+"Webasto") > -1 ) { Timer_time = at.substring(at.indexOf("Webasto")+7,at.indexOf("Webasto")+9).toInt(), enginestart();  
+                                                  if (Timer_time == 0) Timer_time = 10;  // если вдруг вернулся ноль меняем его на 10
    } else if (at.indexOf("Stop") > -1 )           { heatingstop();                                                                // команда остановки прогрева.
    }
      at = "";                                                                                    // очищаем переменную
@@ -152,7 +153,7 @@ void detection(){                           // услови проверяемы
 }             
  
 void enginestart() {                                                   // программа запуска двигателя
-if (Timer_time !=0) WarmUpTimer = Timer_time;                          // если установка прогрева не равена 0 то устанавливаем таймер обратного отсчета 
+WarmUpTimer = Timer_time;                                              // присваиваем таймеру обратного отсчета новое значение
 int count = 3;                                                         // переменная хранящая число оставшихся потыток зауска
 int StarterTime = 1400;                                                // переменная хранения времени работы стартера (1 сек. для первой попытки)  
 if (TempDS0 < 15 && TempDS0 != -127)  StarterTime = 1200, count = 2;   // при 15 градусах крутим 1.2 сек 2 попытки 
