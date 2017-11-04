@@ -75,8 +75,9 @@ void loop() {
     while (m590.available()) k = m590.read(), at += char(k),delay(1);
     
     if (at.indexOf("RING") > -1) {
-        m590.println("AT+CLIP=1");                                                           //включаем АОН
-        if (at.indexOf(call_phone) > -1 && WarmUpTimer < 30) delay(50), m590.println("ATH0"), WarmUpTimer = Timer_time * 6, start = true;  // сбрасываем вызов
+        m590.println("AT+CLIP=1");                                                           //включаем АОН                              
+        if (at.indexOf("+CLIP: \""+call_phone+"\",") > -1 && at.indexOf("+CMGR:") == -1 )    // если прилетел номер телефона и он прилетел не из SMS то 
+        delay(50), m590.println("ATH0"), WarmUpTimer = Timer_time * 6, start = true;  // сбрасываем вызов
   
     /*  --------------------------------------------------- ПРЕДНАСТРОЙКА МОДЕМА M590 ----------------------------------------------------------------------   */
     } else if (at.indexOf("+PBREADY\r\n") > -1)                    {m590.println ("ATE1"),             delay(100);      // Включить режим ЭХО
