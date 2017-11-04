@@ -25,6 +25,7 @@ String SENS = "GSM-Sensor";         // Название устройства (п
 String APN = "internet.life.com.by";// тчка доступа выхода в интернет вашего сотового оператора
 String USER = "life";               // имя выхода в интернет вашего сотового оператора
 String PASS = "life";               // пароль доступа выхода в интернет вашего сотового оператора
+String PIN = "123";                 // код для ограничения доступа через SMS
 bool  n_send = true;                // отправка данных на народмон включена (true), отключена (false)
 float Vstart = 12.50;               // поорог распознавания момента запуска по напряжению
 int SMS_time = 2;                   // время в минутах с момента попытки запуска, черз которое отправляем СМС-отчет
@@ -110,9 +111,9 @@ void loop() {
    } else if (at.indexOf("+TCPSEND:0,") > -1 )                                {delay (100), m590.println("AT+TCPCLOSE=0");  
    /*  --------------------------------------------- РЕАКЦИЯ НА ВХОДЯЩЕЕ СМС -------------------------------------------------------------------------------- */ 
    } else if (at.indexOf("\"SM\",") > -1)       { m590.println("AT+CMGR=1"), delay(20), m590.println("AT+CMGD=1,4"), delay(20); // читаем СМС и удаляем их все   
-   } else if (at.indexOf("123Webasto10") > -1 ) { Timer_time = 10,   enginestart();              // команда запуска на 10 мин.
-   } else if (at.indexOf("123Webasto20") > -1 ) { Timer_time = 20,   enginestart();              // команда запуска на 20 мин.
-   } else if (at.indexOf("123Webasto30") > -1 ) { Timer_time = 30,   enginestart();              // команда запуска на 30 мин.
+   } else if (at.indexOf(""+PIN+"Webasto10") > -1 ) { Timer_time = 10,   enginestart();              // команда запуска на 10 мин.
+   } else if (at.indexOf(""+PIN+"Webasto20") > -1 ) { Timer_time = 20,   enginestart();              // команда запуска на 20 мин.
+   } else if (at.indexOf(""+PIN+"Webasto30") > -1 ) { Timer_time = 30,   enginestart();              // команда запуска на 30 мин.
    } else if (at.indexOf("123Webasto40") > -1 ) { Timer_time = 40,   enginestart();              // команда запуска на 40 мин.
    } else if (at.indexOf("123Stop") > -1 ) { heatingstop();                                     // команда остановки прогрева.
    }
