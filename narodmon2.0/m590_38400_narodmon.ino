@@ -114,7 +114,7 @@ void loop() {
    } else if (at.indexOf("123Webasto20") > -1 ) { Timer_time = 20,   enginestart();              // команда запуска на 20 мин.
    } else if (at.indexOf("123Webasto30") > -1 ) { Timer_time = 30,   enginestart();              // команда запуска на 30 мин.
    } else if (at.indexOf("123Webasto40") > -1 ) { Timer_time = 40,   enginestart();              // команда запуска на 40 мин.
-   } else if (at.indexOf("123Webasto30") > -1 ) { heatingstop();                                 // команда остановки прогрева.
+   } else if (at.indexOf("123Stop") > -1 ) { heatingstop();                                     // команда остановки прогрева.
    }
      at = "";                                                                                    // очищаем переменную
 }
