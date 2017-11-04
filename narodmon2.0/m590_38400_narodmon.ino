@@ -84,13 +84,12 @@ void loop() {
                                   }
         }
 
-     /*  --------------------------------------------- РЕАКЦИЯ НА ВХОДЯЩЕЕ СМС -------------------------------------------------------------------------------- 
-   //  } else if (at.indexOf("+CMTI: \"SM\",") > -1)     { int i = at.substring(at.indexOf("\"SM\",")+5, at.indexOf("\"SM\",")+7).toInt();
-   //                                                          m590.print("AT+CMGR="), m590.print(i), m590.println("");
- 
-    } else if (at.indexOf(""+PIN+"Webasto") > -1 ) { Timer_time = at.substring(at.indexOf("Webasto")+7,at.indexOf("Webasto")+9).toInt(), enginestart();  
-                                                   if (Timer_time == 0) Timer_time = 10;  // если вдруг вернулся ноль меняем его на 10                      
-    } else if (at.indexOf("Stop") > -1 )           { heatingstop();                                                                // команда остановки прогрева.
+     /*  --------------------------------------------- РЕАКЦИЯ НА ВХОДЯЩЕЕ СМС и команду народмона------------------------------------------------------------ */
+/*  } else if (at.indexOf("+CMTI: \"SM\",") > -1)  { m590.print("AT+CMGR=1"), delay (2000),m590.println ("AT+CMGD=1,4"),      delay(300); 
+    } else if (at.indexOf("webasto10") > -1 )     {Timer_time =10, enginestart();                                                  // команда запуска прогрева.                                               
+    } else if (at.indexOf("webasto20") > -1 )     {Timer_time =20, enginestart();                                                  // команда запуска прогрева.                                                                     
+    } else if (at.indexOf("webasto30") > -1 )     {Timer_time =30, enginestart();                                                  // команда запуска прогрева.
+    } else if (at.indexOf("stop") > -1 )          {heatingstop();                                                                  // команда остановки прогрева.
 */
         
     /*  --------------------------------------------------- ПРЕДНАСТРОЙКА МОДЕМА M590 ----------------------------------------------------------------------   */
@@ -115,9 +114,11 @@ void loop() {
               buf=buf+ "##";                                                                     // закрываем пакет ##
              m590.print("AT+TCPSEND=0,"),    m590.print(buf.length()),  m590.println(""), delay (200);               
    /*  ------------------------------ ПОЛУЧАЕМ ПРИГЛАШЕНИЕ НА ОТПРАВКУ TCP ПАКЕТА И ШВЫРЯЕМ ЕГО В МОДЕМ ---------------------------------------------------   */  
-   } else if (at.indexOf("AT+TCPSEND=0,") > -1 && at.indexOf("\r\r\n>") > -1) {m590.print(buf), Serial.println(buf), delay (500), m590.println("AT+TCPCLOSE=0");
-   } else if (at.indexOf("+TCPSEND:0,") > -1 )                                {delay (100), m590.println("AT+TCPCLOSE=0");  
+   } else if (at.indexOf("AT+TCPSEND=0,") > -1 && at.indexOf("\r\r\n>") > -1) {m590.print(buf), Serial.println(buf) , delay (500), m590.println("AT+TCPCLOSE=0");
+ //  } else if (at.indexOf("+TCPSEND:0,") > -1 )                                {delay (100), m590.println("AT+TCPCLOSE=0"); //  +TCPRECV:0,14,ERROR NO DATA
+   } else if (at.indexOf("+TCPRECV:") > -1 )                                  {delay (100), m590.println("AT+TCPCLOSE=0");
    }
+  
      Serial.println(at), at = "";                                           // очищаем переменную
 }
 
