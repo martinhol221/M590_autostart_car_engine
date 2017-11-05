@@ -1,0 +1,21 @@
+Vbat= 12.82 V. || Temp : -127.00 || Interval : 27 || WarmUpTimer =0
+
+RING               // первый гудок
+
+AT+CLIP=1  
+
+
+OK
+
+Vbat= 12.85 V. || Temp : -127.00 || Interval : 26 || WarmUpTimer =0
+enginestart.. Timer_time:  15 min. || StarterTime: 1400 milisec. || TempDS0: -127.00 milisec. || Coun: 3
+count = 3
+ ||  StarterTime = 1400
+heating = true, break,  Vbat > Vstart = 12.83
+ out >>>>> enginestart()
+
+RING              // второй гудок уже после цикла запуска
+
++CLIP: "3750000000000",145,,,"",0
+
+Vbat= 12.77 V. || Temp : -127.00 || Interval : 25 || WarmUpTimer =90
