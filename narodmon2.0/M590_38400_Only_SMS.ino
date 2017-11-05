@@ -21,7 +21,7 @@ DallasTemperature sensors(&oneWire);
 String call_phone = "375000000000"; // телефон входящего вызова
 String SMS_phone =  "375000000000"; // телефон куда отправляем СМС
 String SENS = "GSM-Sensor";         // Название устройства (придумать свое Citroen 566 или др. для отображения в программе и на карте)
-String PIN = "123";                 // код для ограничения доступа через SMS
+String PIN = "start";               // код для ограничения доступа через SMS. 5 байт !!!
 float Vstart = 12.50;               // поорог распознавания момента запуска по напряжению
 int SMS_time = 2;                   // время в минутах с момента попытки запуска, черз которое отправляем СМС-отчет
 int Timer_time = 15;                // таймер времени прогрева в минутах
@@ -80,13 +80,13 @@ void loop() {
     } else if (at.indexOf("+PBREADY\r\n") > -1)                    {m590.println ("ATE1"),             delay(100);      // Включить режим ЭХО
     } else if (at.indexOf("ATE1\r\r\nOK\r\n") > -1)                {m590.println ("AT+CMGF=1"),        delay(100);      // Включаем Текстовый режим СМС
     } else if (at.indexOf("AT+CMGF=1\r\r\nOK\r\n") > -1)           {m590.println ("AT+CSCS=\"gsm\""),  delay(100);      // Выбираем кодировку СМС
-    } else if (at.indexOf("AT+CSCS=\"gsm\"\r\r\nOK\r\n") > -1)     {m590.println ("AT+CMGD=1,4"),      delay(300);      // Удаляем все СМС
+    } else if (at.indexOf("AT+CSCS=\"gsm\"\r\r\nOK\r\n") > -1)     {m590.println ("AT+CMGD=1,4"),      delay(2000);      // Удаляем все СМС
     } else if (at.indexOf("AT+CMGD=1,4\r\r\n") > -1)               {m590.println ("AT+CNMI=2,1,0,0,0"),delay(300);      // Разрешаем прием входящих СМС
    /*  --------------------------------------------- РЕАКЦИЯ НА ВХОДЯЩЕЕ СМС -------------------------------------------------------------------------------- */ 
    } else if (at.indexOf("\"SM\",") > -1)         { int i = at.substring(at.indexOf("\"SM\",")+5, at.indexOf("\"SM\",")+7).toInt();
                                                    m590.print("AT+CMGR="), m590.print(i), m590.println(""); // читаем СМС и удаляем их все   
                                                    
-   } else if (at.indexOf("start") > -1 ) { Timer_time = at.substring(at.indexOf("start")+5,at.indexOf("start")+7).toInt(), enginestart();  
+   } else if (at.indexOf(""+PIN+"") > -1 ) { Timer_time = at.substring(at.indexOf(""+PIN+"")+5,at.indexOf(""+PIN+"")+7).toInt(), enginestart();  
                                                   if (Timer_time == 0) Timer_time = 10;  // если вдруг вернулся ноль меняем его на 10
    } else if (at.indexOf("stop") > -1 )           { heatingstop();                                                                // команда остановки прогрева.
    }
