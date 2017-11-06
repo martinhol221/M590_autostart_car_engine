@@ -102,8 +102,10 @@ void detection(){                           // услови проверяемы
       
     if (SMS_send == true && SMS_report == true) { SMS_send = false;  // если фаг SMS_send равен 1 высылаем отчет по СМС
         Serial.print("SMS send start...");
-        m590.println("AT+CMGS=\"+"+SMS_phone+"\""), delay(100);
-        m590.print(""+SENS+"  v 05.11.2017 ");
+        m590.println ("AT+CMGF=1"),        delay(100);
+        m590.println ("AT+CSCS=\"gsm\""),  delay(100);
+        m590.println("AT+CMGS=\""+SMS_phone+"\""), delay(200);
+        m590.print("Privet "+SENS+" ");
         m590.print("\n Temp.Dvig: "),  m590.print(TempDS0);
         m590.print("\n Temp.Salon: "), m590.print(TempDS1);
         m590.print("\n Vbat: "),       m590.print(Vbat);
@@ -111,7 +113,7 @@ void detection(){                           // услови проверяемы
         m590.print("\n Uptime: "),     m590.print(millis()/3600000), m590.print(" H.");
         m590.print((char)26);                   }
 
-    if (WarmUpTimer == (Timer_time - SMS_time))         WarmUpTimer--, SMS_send = true;                   // отправляем СМС 
+   // if (WarmUpTimer == (Timer_time - SMS_time))         WarmUpTimer--, SMS_send = true;                   // отправляем СМС 
     if (WarmUpTimer > 0 )                               WarmUpTimer--;                  // вычитаем из таймера 1 цу каждых 60 сек.
     if (heating == true && WarmUpTimer <1)              Serial.println("End timer"),   webasto_OFF(); 
     if (heating == true && Vbat < 11.0)                 Serial.println("Low voltage"), webasto_OFF(); 
@@ -122,13 +124,16 @@ void detection(){                           // услови проверяемы
 
 /*------------------------------------------------- УПРАВЛЕНИЕ РЕЛЕ ------------------------------------------------------------------*/ 
 void webasto_ON() {                                       // программа включения прогрева
+   Serial.print ("Timer_time"), Serial.println (Timer_time);  
     WarmUpTimer = Timer_time;                             // прогрев по умолчанию 5 минут
 if (TempDS0 < -5 && TempDS0 != -127)  WarmUpTimer = 60;   // прогрев на  10 минут
 if (TempDS0 <-10 && TempDS0 != -127)  WarmUpTimer = 90;   // прогрев на  15 минут 
 if (TempDS0 <-15 && TempDS0 != -127)  WarmUpTimer = 120;  // прогрев на 20 минут 
 if (TempDS0 <-20 && TempDS0 != -127)  WarmUpTimer = 150;  // Прогрев на 30 минут 
-if (Vbat > 10.00 && digitalRead(STOP_Pin) == LOW)  digitalWrite(ON_Pin, HIGH), heating = true;  // включаем реле на вебасту
-   Serial.println ("WarmUp ON");
+digitalWrite(ON_Pin, HIGH), heating = true, Serial.println ("WarmUp ON, SMS_send = true ");
+SMS_send = true;   // включаем реле на вебасту
+m590.println ("AT+CMGD=1,4");
+   
                 }
 
 void webasto_OFF() {  // программа остановки прогрева двигателя
