@@ -9,14 +9,9 @@ DallasTemperature sensors(&oneWire);
 /*  ----------------------------------------- НАЗНАЧАЕМ ВЫВДЫ --------------------------------------------------------------------   */
 #define STARTER_Pin 8               // на реле стартера, через транзистор с 8-го пина ардуино
 #define ON_Pin 9                    // на реле зажигания, через транзистор с 9-го пина ардуино
-#define FIRST_P_Pin 11              // на для дополнительного реле первого положения ключа зажигания
 #define ACTIV_Pin 13                // на светодиод c 13-го пина для индикации активности 
 #define BAT_Pin A0                  // на батарею, через делитель напряжения 39кОм / 11 кОм
-#define Feedback_Pin A3             // на силовой провод замка зажигания
-#define STOP_Pin A2                 // на концевик педали тормоза для отключения режима прогрева или датчик нейтральной передачи
-#define DDM_Pin A1                  // на датчик давления масла
-#define boot_Pin 3                  // на 19-ю ногу модема для его пробуждения
-#define ring_Pin 2                  // на 10-ю ногу модема для пробуждения ардуино
+#define STOP_Pin 3                  // на концевик педали тормоза для отключения режима прогрева или датчик нейтральной передачи
 /*  ----------------------------------------- ИНДИВИДУАЛЬНЫЕ НАСТРОЙКИ !!!---------------------------------------------------------   */
 String call_phone = "375000000000"; // телефон входящего вызова
 String SMS_phone =  "375000000000"; // телефон куда отправляем СМС
@@ -35,24 +30,20 @@ int k = 0;
 int WarmUpTimer = 0;               // переменная времени прогрева двигателя по умолчанию
 bool heating = false;              // переменная состояния режим прогрева двигателя
 bool SMS_send = false;             // флаг разовой отправки СМС
-bool SMS_report = true;            // флаг СМС отчета
+bool SMS_report = false;            // флаг СМС отчета
 unsigned long Time1 = 0;
 
 
 
 void setup() {
-  pinMode(ring_Pin,    INPUT);
-  pinMode(STARTER_Pin, OUTPUT);
-  pinMode(ON_Pin,      OUTPUT);
-  pinMode(FIRST_P_Pin, OUTPUT);
-  pinMode(boot_Pin,    OUTPUT);
-  digitalWrite(boot_Pin, LOW);
+  pinMode(ON_Pin,      OUTPUT);    // выход на реле
+  pinMode(STOP_Pin,     INPUT);    // вход от кнопки экстренного отключения вебасто
   Serial.begin(9600);              // скорость порта для отладки
   m590.begin(38400);               // скорость порта модема, может быть 38400
   delay(2000);
 
-  if (digitalRead(STOP_Pin) == HIGH) SMS_report = true;  // включаем народмон при нажатой педали тормоза при подаче питания 
-  Serial.print("Starting M590, Sensor name: "+SENS+" 5.11.2017, SMS_report =  "), Serial.println(SMS_report);
+  if (digitalRead(STOP_Pin) == HIGH) SMS_report = true;  // включаем SMS оповещение при нажатой педали тормоза при подаче питания 
+  Serial.print("Starting M590, Sensor name: "+SENS+" 6.11.2017, SMS_report =  "), Serial.println(SMS_report);
 
 /*-смена скорости модема с 9600 на 38400:
 установить m590.begin(9600);, раскоментировать m590.println("AT+IPR=38400"), delay (1000);  и m590.begin(38400), прошить
@@ -116,6 +107,7 @@ void detection(){                           // услови проверяемы
         m590.print("\n Temp.Salon: "), m590.print(TempDS1);
         m590.print("\n Vbat: "),       m590.print(Vbat);
         m590.print("\n Webasto time: "), m590.print(Timer_time);
+        m590.print("\n Uptime: "),     m590.print(millis()/3600000), m590.print(" H.");
         m590.print((char)26);                   }
 
     if (WarmUpTimer == (Timer_time - SMS_time))         WarmUpTimer--, SMS_send = true;                   // отправляем СМС 
@@ -134,7 +126,7 @@ if (TempDS0 < -5 && TempDS0 != -127)  WarmUpTimer = 60;   // прогрев на
 if (TempDS0 <-10 && TempDS0 != -127)  WarmUpTimer = 90;   // прогрев на  15 минут 
 if (TempDS0 <-15 && TempDS0 != -127)  WarmUpTimer = 120;  // прогрев на 20 минут 
 if (TempDS0 <-20 && TempDS0 != -127)  WarmUpTimer = 150;  // Прогрев на 30 минут 
-if (Vbat > 10.00 && digitalRead(Feedback_Pin) == LOW)  digitalWrite(ON_Pin, HIGH), heating = true;  // включаем реле на вебасту
+if (Vbat > 10.00 && digitalRead(STOP_Pin) == LOW)  digitalWrite(ON_Pin, HIGH), heating = true;  // включаем реле на вебасту
    Serial.println ("WarmUp ON");
                 }
 
