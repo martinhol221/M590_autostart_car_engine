@@ -79,7 +79,8 @@ void loop() {
                                                    
    } else if (at.indexOf(""+PIN+"") > -1 ) { Timer_time = at.substring(at.indexOf(""+PIN+"")+5,at.indexOf(""+PIN+"")+7).toInt(), webasto_ON();  
                                                   if (Timer_time == 0) Timer_time = 10;  // если вдруг вернулся ноль меняем его на 10
-   } else if (at.indexOf("stop") > -1 )           { webasto_OFF();                                                                // команда остановки прогрева.
+   } else if (at.indexOf("status") > -1 )         { SMS_send = true;   
+   } else if (at.indexOf("stop") > -1 )           { webasto_OFF();   // команда остановки прогрева.
    }
      at = "";                                                                                    // очищаем переменную
 }
