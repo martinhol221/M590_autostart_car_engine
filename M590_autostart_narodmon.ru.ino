@@ -146,7 +146,7 @@ void detection(){                           // услови проверяемы
     if (heating == false)                               digitalWrite(ACTIV_Pin, HIGH), delay (50), digitalWrite(ACTIV_Pin, LOW);
     if (n_send == true)                                 interval--;
     if (interval <1 )                                   interval = 30, m590.println ("AT+XISP=0"), delay(100); // выходим в интернет
-  //  if (interval == 28 )                                delay (100), m590.println("AT+TCPCLOSE=0");
+    if (interval == 28 )                                delay (100), m590.println("AT+TCPCLOSE=0");
 }             
  
 void enginestart() {                                      // программа запуска двигателя
