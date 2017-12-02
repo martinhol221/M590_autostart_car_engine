@@ -113,6 +113,15 @@ void loop() {
 
 if (millis()> Time1 + 10000) detection(), Time1 = millis(); // выполняем функцию detection () каждые 10 сек 
 if (heating == true && digitalRead(STOP_Pin) == HIGH) heatingstop();
+  
+  
+   /*  для отладки*/
+
+     if (Serial.available()) {             //если в мониторе порта ввели что-то
+    while (Serial.available()) k = Serial.read(), at += char(k), delay(1);
+    m590.println(at), at = "";  //очищаем
+                             }
+  
 
 }   
 void detection(){                           // услови проверяемые каждые 10 сек  
