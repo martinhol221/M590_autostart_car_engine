@@ -94,7 +94,8 @@ void loop() {
     } else if (at.indexOf("AT+CGDCONT=1,\"IP\",\""+APN+"\"\r\r\nOK\r\n") > -1 ) {delay(30), m590.println ("AT+XGAUTH=1,1,\""+USER+"\",\""+PASS+"\""),delay (100); 
     } else if (at.indexOf("AT+XGAUTH=1,1,\""+USER+"\",\""+PASS+"\"") > -1 )     {delay(30), m590.println ("AT+XIIC=1"),                              delay (100);
     /*  --------------------------------------------------- ПОДКЛЮЧАЕМСЯ К СЕРВЕРУ narodmon.ru:8283 -------------------------------------------------------   */
-    } else if (at.indexOf("AT+XIIC=1\r\r\nOK\r\n") > -1 )                       {delay(30), m590.println ("AT+TCPSETUP=0," +SERVER+ ""), delay (1200);
+    } else if (at.indexOf("AT+XIIC=1\r\r\nOK\r\n") > -1 )                       { m590.println ("AT+XIIC?"), delay (2200);
+    } else if (at.indexOf("+XIIC:") > -1 )                                      {delay(50), m590.println ("AT+TCPSETUP=0," +SERVER+ ""), delay (1200);
     /*  ------------------------------ ПОЛУЧАЕМ ДОБРО ОТ СЕРВЕРА, СОБИРАЕМ ПАКЕТ ДАННЫХ И ОТПРАВЛЯЕМ ДЛИННУ TCP ПАКЕТА В МОДЕМ ----------------------------   */    
     } else if (at.indexOf("+TCPSETUP:0,OK") > -1 )                                       { buf = "";  // в переменную и набиваем пакет данных:
               buf ="#" +MAC+ "#" +SENS+ "\n";                                                    // MAC адресс устройства
