@@ -7,11 +7,17 @@ Control the car engine start using the sms request, and send the data to narodmo
 TCP пакет уходящий на сервер `94.142.140.101` в порт `8283` каждых 5 минут:
 
 `#59-01-AA-00-00-00#GSM-Sensor`  - адресс и имя устройства      
+
 `#Temp0#17.30`                   - температура с датчика DS18B20 (крепление на двигатель)
+
 `#Temp1#19.85`                   - температура с датчика DS18B20 (нахождение в салоне)
+
 `#Temp3#9.11`                    - с других датчиков , до 10 шт. на одной шине.
+
 `#Vbat#7.60`                     - напряжение АКБ
+
 `#Uptime#102`                    - время непрерывной работы устройства в секундах
+
 `##`                             
 
 ## Получение данных на сервис народного мониторинга каждых 5 минут
@@ -22,7 +28,7 @@ TCP пакет уходящий на сервер `94.142.140.101` в порт `
 
 `+TCPRECV:0,7,#estop`            - с командой на останов прогрева
 
-Получение данных и отправка команд возможна как с веб сайта [narodmon.ru](https://narodmon.ru), так и из приложения ![Народмон 2017](https://play.google.com/store/apps/details?id=com.axbxcx.narodmon&hl=ru). Необходима регистрация на сайте и добавление своего датчика. "Датчики" далее  "добавить мое устройство мониторинга" вставить адрес (пример 59-01-AA-00-00-00), "ок". После чего в приложении будут отображаться ваши датчики.
+Получение данных и отправка команд возможна как с веб сайта [narodmon.ru](https://narodmon.ru), так и из приложения [Народмон 2017](https://play.google.com/store/apps/details?id=com.axbxcx.narodmon&hl=ru). Необходима регистрация на сайте и добавление своего датчика. "Датчики" далее  "добавить мое устройство мониторинга" вставить адрес (пример 59-01-AA-00-00-00), "ок". После чего в приложении будут отображаться ваши датчики.
 
 ## Запуск по входящему звонку
 
@@ -84,4 +90,4 @@ TCP пакет уходящий на сервер `94.142.140.101` в порт `
 ![](https://github.com/martinhol221/M590_autostart_car_engine/blob/master/other/IMG_3714.JPG)
 ![](https://github.com/martinhol221/M590_autostart_car_engine/blob/master/other/IMG_3712-001.JPG)
 ![](https://github.com/martinhol221/M590_autostart_car_engine/blob/master/other/IMG_3711-002.JPG)
-![](https://github.com/martinhol221/M590_autostart_car_engine/blob/master/other/Shema.jpg)
+![Схема, возможны не точности](https://github.com/martinhol221/M590_autostart_car_engine/blob/master/other/Shema.jpg)
