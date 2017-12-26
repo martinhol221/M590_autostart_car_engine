@@ -91,3 +91,6 @@ TCP пакет уходящий на сервер `94.142.140.101` в порт `
 ![](https://github.com/martinhol221/M590_autostart_car_engine/blob/master/other/IMG_3712-001.JPG)
 ![](https://github.com/martinhol221/M590_autostart_car_engine/blob/master/other/IMG_3711-002.JPG)
 ![Схема, возможны не точности](https://github.com/martinhol221/M590_autostart_car_engine/blob/master/other/Shema.jpg)
+
+[Лог работы](https://raw.githubusercontent.com/martinhol221/M590_autostart_car_engine/master/other/send_data_narodmon.log)
+
