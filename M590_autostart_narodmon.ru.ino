@@ -136,7 +136,7 @@ void detection(){                          // услови проверяемы�
     if (Timer == 12) SMS_send = true;             // отправляем СМС за 2 минуты до окончания работы таймера 
     if (Timer > 0 )  Timer--;                     // вычитаем из таймера 1 каждых 10 сек.
     if (heating == true && Timer <1)              Serial.println("Отановка по таймеру"),   heatingstop(); 
-    if (heating == true && Vbat < 10.0)           Serial.println("Остановка по напряжению"), heatingstop(); 
+    if (heating == true && Vbat < 10.0)           Serial.println("Остановка по напряжению"),Timer =0, heatingstop(); 
     if (heating == false)                         digitalWrite(LED_Pin, HIGH), delay (50), digitalWrite(LED_Pin, LOW);
     if (n_send == true)                           interval--;
     if (interval <1 ) interval = 30, m590.println ("AT+XIIC?");       // запрашиваем статус соединения           
@@ -179,6 +179,7 @@ while (z > 0) digitalWrite(SECOND_P, LOW), delay(2000), digitalWrite(SECOND_P, H
                                    digitalWrite(STARTER_Pin, HIGH);  // включаем реле стартера
                                    } else {
                                    heatingstop();
+                                   Timer = 0;
                                    count = -1;  
                                    break; 
                                    } 
