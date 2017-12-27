@@ -78,7 +78,7 @@ void loop() {
     /*  --------------------------------------------------- ПРЕДНАСТРОЙКА МОДЕМА M590 ----------------------------------------------------------------------   */
     } else if (at.indexOf("+PBREADY\r\n") > -1)                                 {m590.println("ATE1;+CMGF=1;+CSCS=\"gsm\";+CLIP=1"); // дважды  ATE1 для модемов версии ниже 1.3
     /*  ----------------------------------------------- ЕСЛИ НЕТ СОЕДИНЕНИЯ с ИНТЕРНЕТ ТО УСТАНОАВЛИВАЕМ ЕГО -----------------------------------------------   */
-    } else if (at.indexOf("+XIIC:    0,") > -1 )                                { m590.println("AT+TCPCLOSE=0"),delay(200),m590.println("AT+XISP=0"),delay(200),interval=5;
+    } else if (at.indexOf("+XIIC:    0,") > -1 || at.indexOf("+TCPSETUP:Error 1") > -1) { m590.println("AT+TCPCLOSE=0"),delay(200),m590.println("AT+XISP=0"),delay(200),interval=5;
     } else if (at.indexOf("AT+XISP=0\r\r\nOK\r\n") > -1 )                       {delay(30), m590.println ("AT+CGDCONT=1,\"IP\",\""+APN+"\""),        delay(50); 
     } else if (at.indexOf("AT+CGDCONT=1,\"IP\",\""+APN+"\"\r\r\nOK\r\n") > -1 ) {delay(30), m590.println ("AT+XGAUTH=1,1,\""+USER+"\",\""+PASS+"\""),delay(100); 
     } else if (at.indexOf("AT+XGAUTH=1,1,\""+USER+"\",\""+PASS+"\"") > -1 )     {delay(30), m590.println ("AT+XIIC=1"),                              delay(100);
