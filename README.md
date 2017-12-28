@@ -96,3 +96,8 @@ TCP пакет уходящий на сервер `94.142.140.101` в порт `
 
 [Лог работы](https://raw.githubusercontent.com/martinhol221/M590_autostart_car_engine/master/other/send_data_narodmon.log)
 
+
+
+## Важно понимать что модемы М590 приходят из Китая уже выпаянные их других устройст с большим процентам брака, от этого могут не регистрироваться в сети 
+
+[Мой проект на модеме SIM800L](https://github.com/martinhol221/SIM800L_DTMF_control)
