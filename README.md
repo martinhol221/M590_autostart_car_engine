@@ -1,6 +1,6 @@
 Control the car engine start using the sms request, and send the data to narodmon.ru 
 
-# Проект для дешевого GSM модема M590 и Arduino Pro Mini для удаленного запуска двигателя автомобиля
+# Проект для автозапуска двигателя автомобиля на дешевом GSM модеме M590 и Arduino Pro Mini для удаленного запуска двигателя автомобиля
 
 
 ![](https://github.com/martinhol221/M590_autostart_car_engine/blob/master/other/188cce5s-960.jpg)
