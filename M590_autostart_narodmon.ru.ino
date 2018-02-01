@@ -55,10 +55,11 @@ void setup() {
   
   Serial.begin(9600);              // скорость порта для отладки 9600
   m590.begin(38400);               // скорость порта модема, может быть 38400
-  delay(1000);
-
+  delay(5000);
+  m590.println("ATE1;+CMGF=1;+CSCS=\"gsm\";+CLIP=1");
   if (digitalRead(STOP_Pin) == HIGH) n_send = false;   // включаем народмон при нажатой педали тормоза при подаче питания 
   Serial.println("MAC: "+MAC+" Sensor name: "+SENS+"V1.7/26.12.2017");
+  
 
 /*-смена скорости модема с 9600 на 38400:
 установить m590.begin(9600);, раскоментировать m590.println("AT+IPR=38400"), delay (1000);  и m590.begin(38400), прошить
