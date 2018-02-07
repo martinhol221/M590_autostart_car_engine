@@ -125,6 +125,7 @@ void detection(){                          // услови проверяемы�
     Serial.println ("");
         
     if (SMS_send == true && SMS_report == true) { SMS_send = false;  // если фаг SMS_send равен 1 высылаем отчет по СМС
+     //   m590.println("AT+CMGF=1;+CSCS=\"gsm\""), delay(100);                                         
         m590.println("AT+CMGS=\"+"+call_phone+"\""), delay(100);
         m590.print("Privet "+SENS+"!");
         m590.print("\n Voltage BAT Now: "), m590.print(Vbat);
