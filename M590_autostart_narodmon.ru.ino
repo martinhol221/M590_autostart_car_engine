@@ -25,7 +25,7 @@ String SENS = "GSM-Sensor";         // Название устройства (п
 String APN = "internet.mts.by";     // тчка доступа выхода в интернет вашего сотового оператора
 String USER = "mts";                // имя выхода в интернет вашего сотового оператора
 String PASS = "mts";                // пароль доступа выхода в интернет вашего сотового оператора
-String SERVER = "94.142.140.101,8283";  // сервер, порт народмона (на октябрь 2017) 
+String SERVER = "185.245.187.136,8283";  // сервер, порт народмона (на май 2018) 
 bool  n_send = true;                // отправка данных на народмон включена (true), отключена (false)
 bool SMS_report = true;             // флаг СМС отчета
 float Vstart = 12.50;               // поорог распознавания момента запуска по напряжению
@@ -58,7 +58,7 @@ void setup() {
   delay(5000);
   m590.println("ATE1;+CMGF=1;+CSCS=\"gsm\";+CLIP=1");
   if (digitalRead(STOP_Pin) == HIGH) n_send = false;   // включаем народмон при нажатой педали тормоза при подаче питания 
-  Serial.println("MAC: "+MAC+" Sensor name: "+SENS+"V1.7/09.02.2018");
+  Serial.println("MAC: "+MAC+" Sensor name: "+SENS+"V1.7/27.05.2018");
   attachInterrupt(1, callback, FALLING);   // 3-й пин Ардуино
   
 
